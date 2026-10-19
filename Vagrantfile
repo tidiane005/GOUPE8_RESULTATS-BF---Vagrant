@@ -22,7 +22,7 @@ if File.file?(env_file)
 end
 
 # Lecture des variables d'environnement ou valeurs par defaut
-GROUPE = (ENV['GROUPE'] || 1).to_i
+GROUPE = (ENV['GROUPE'] || 8).to_i
 NB_APP = (ENV['NB_APP'] || 2).to_i
 
 RESEAU = "192.168.#{55 + GROUPE}"
