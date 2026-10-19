@@ -10,7 +10,6 @@ if [ ! -f "$NOEUDS" ]; then
 fi
 
 echo "===> Installation de HAProxy, Keepalived, psmisc et Ruby..."
-# Installation uniquement des paquets manquants (rejeu rapide et sans réseau)
 PAQUETS="haproxy keepalived psmisc ruby"
 MANQUANTS=""
 for p in $PAQUETS; do
@@ -28,7 +27,7 @@ trap 'rm -f "$TMP_HAPROXY"' EXIT
 ruby - "$NOEUDS" > "$TMP_HAPROXY" << 'RUBY_EOF'
 require 'yaml'
 
-noeuds = YAML.load_file(ARGV[0], permitted_classes: [Symbol])
+noeuds = YAML.load_file(ARGV[0])
 champ  = ->(n, k) { n[k.to_s] || n[k.to_sym] }
 apps   = noeuds.select { |n| champ.(n, :role) == 'app' }
 
@@ -92,11 +91,9 @@ echo "===> Configuration de Keepalived (VRRP)..."
 
 HOSTNAME=$(hostname)
 
-# Détection de l'interface du réseau privé hôte-seul
 IFACE=$(ip -o -4 addr show | grep '192.168.' | awk '{print $2}' | head -n 1)
-IFACE=${IFACE:-eth1}
+IFACE=${IFACE:-enp0s8}
 
-# Préfixe réseau de la machine (ex : 192.168.56)
 NET_PREFIX=$(ip -o -4 addr show dev "$IFACE" | awk '{print $4}' | cut -d'.' -f1-3 | head -n 1)
 VIP="${NET_PREFIX}.5"
 
@@ -108,7 +105,6 @@ else
     PRIORITY=100
 fi
 
-# Mot de passe VRRP : variable d'environnement si fournie (R7)
 VRRP_PASS="${VRRP_PASS:-secr3t_vrrp}"
 
 TMP_KA=$(mktemp)
