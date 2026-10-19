@@ -1,1 +1,6 @@
 .env
+.vagrant/
+.venv/
+.vscode/
+__pycache__/
+*.py[cod]

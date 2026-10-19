@@ -2,7 +2,26 @@
 require 'yaml'
 require 'fileutils'
 
-# Lecture des variables d'environnement ou valeurs par défaut
+# Charger le fichier local sans dependance externe. Les variables deja exportees
+# dans le terminal restent prioritaires.
+env_file = File.expand_path('.env', __dir__)
+if File.file?(env_file)
+  File.foreach(env_file) do |line|
+    line = line.strip
+    next if line.empty? || line.start_with?('#')
+
+    key, value = line.split('=', 2)
+    next unless key&.match?(/\A[A-Za-z_][A-Za-z0-9_]*\z/) && value
+
+    value = value.sub(/\s+#.*\z/, '').strip
+    if value.length >= 2 && ['"', "'"].include?(value[0]) && value[-1] == value[0]
+      value = value[1...-1]
+    end
+    ENV[key] ||= value
+  end
+end
+
+# Lecture des variables d'environnement ou valeurs par defaut
 GROUPE = (ENV['GROUPE'] || 1).to_i
 NB_APP = (ENV['NB_APP'] || 2).to_i
 
