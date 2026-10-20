@@ -94,10 +94,6 @@ HOSTNAME=$(hostname)
 IFACE=$(ip -o -4 addr show | grep '192.168.' | awk '{print $2}' | head -n 1)
 IFACE=${IFACE:-enp0s8}
 
-<<<<<<< HEAD
-=======
-# Préfixe réseau de la machine (ex : 192.168.63)
->>>>>>> origin/feature/app
 NET_PREFIX=$(ip -o -4 addr show dev "$IFACE" | awk '{print $4}' | cut -d'.' -f1-3 | head -n 1)
 VIP="${NET_PREFIX}.5"
 
