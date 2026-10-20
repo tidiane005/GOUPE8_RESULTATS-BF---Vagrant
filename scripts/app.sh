@@ -38,12 +38,12 @@ find_node_ip() {
     local node="$1"
 
     awk -v wanted="$node" '
-        $0 ~ ":[[:space:]]*nom:[[:space:]]*" wanted "[[:space:]]*$" {
+        $0 ~ "^[[:space:]]*-[[:space:]]*:?[[:space:]]*nom:[[:space:]]*" wanted "[[:space:]]*$" {
             found = 1
             next
         }
-        found && $0 ~ ":[[:space:]]*ip:" {
-            sub(/^.*:[[:space:]]*ip:[[:space:]]*/, "")
+        found && $0 ~ "^[[:space:]]*:?[[:space:]]*ip:[[:space:]]*" {
+            sub(/^[[:space:]]*:?[[:space:]]*ip:[[:space:]]*/, "")
             sub(/\r$/, "")
             print
             exit
@@ -141,7 +141,7 @@ if [ -z "$DB_HOST_VALUE" ] && [ -f "$NODES_FILE" ]; then
 fi
 DB_PORT_VALUE="${DB_PORT:-$(read_project_env DB_PORT)}"
 DB_USER_VALUE="${DB_USER:-$(read_project_env DB_USER)}"
-DB_PASSWORD_VALUE="${DB_PASSWORD:-$(read_project_env DB_PASSWORD)}"
+DB_PASS_VALUE="${DB_PASS:-$(read_project_env DB_PASS)}"
 DB_NAME_VALUE="${DB_NAME:-$(read_project_env DB_NAME)}"
 
 DB_PORT_VALUE="${DB_PORT_VALUE:-5432}"
@@ -154,7 +154,7 @@ if [ -z "$DB_HOST_VALUE" ]; then
 fi
 
 for value in "$DB_HOST_VALUE" "$DB_PORT_VALUE" "$DB_USER_VALUE" \
-             "$DB_PASSWORD_VALUE" "$DB_NAME_VALUE"; do
+             "$DB_PASS_VALUE" "$DB_NAME_VALUE"; do
     case "$value" in
         *$'\n'*|*$'\r'*)
             echo "ERREUR : une variable DB contient un retour a la ligne" >&2
@@ -168,14 +168,14 @@ umask 077
     printf 'DB_HOST="%s"\n' "$(escape_systemd_value "$DB_HOST_VALUE")"
     printf 'DB_PORT="%s"\n' "$(escape_systemd_value "$DB_PORT_VALUE")"
     printf 'DB_USER="%s"\n' "$(escape_systemd_value "$DB_USER_VALUE")"
-    printf 'DB_PASSWORD="%s"\n' "$(escape_systemd_value "$DB_PASSWORD_VALUE")"
+    printf 'DB_PASS="%s"\n' "$(escape_systemd_value "$DB_PASS_VALUE")"
     printf 'DB_NAME="%s"\n' "$(escape_systemd_value "$DB_NAME_VALUE")"
 } > "$ENV_TMP"
 install_if_changed "$ENV_TMP" "$APP_ENV" 0600
 CONFIG_CHANGED=$LAST_INSTALL_CHANGED
 
-if [ -z "$DB_PASSWORD_VALUE" ]; then
-    echo "AVERTISSEMENT : DB_PASSWORD est absent de /vagrant/.env."
+if [ -z "$DB_PASS_VALUE" ]; then
+    echo "AVERTISSEMENT : DB_PASS est absent de /vagrant/.env."
     echo "L'application demarrera, mais /sante renverra 503."
 fi
 

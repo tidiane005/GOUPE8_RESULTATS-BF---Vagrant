@@ -19,7 +19,7 @@ def connexion_db():
         host=variable_obligatoire("DB_HOST"),
         port=os.environ.get("DB_PORT", "5432"),
         user=variable_obligatoire("DB_USER"),
-        password=variable_obligatoire("DB_PASSWORD"),
+        password=variable_obligatoire("DB_PASS"),
         dbname=variable_obligatoire("DB_NAME"),
         connect_timeout=3,
         application_name="resultats-bf",

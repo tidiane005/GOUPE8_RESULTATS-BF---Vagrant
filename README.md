@@ -10,7 +10,7 @@ Copier le fichier d'exemple, puis remplacer le mot de passe par celui convenu
 avec l'ingenieur donnees. Le fichier `.env` est ignore par Git.
 
 ```powershell
-Copy-Item .env.example .env
+Copy-Item .env.exemple .env
 notepad .env
 ```
 
@@ -21,7 +21,7 @@ Variables utilisees par l'application :
 | `DB_HOST` | Adresse de PostgreSQL ; si vide, l'adresse de `bdd1` est lue dans `config/noeuds.yml` |
 | `DB_PORT` | Port PostgreSQL, `5432` par defaut |
 | `DB_USER` | Utilisateur applicatif en lecture |
-| `DB_PASSWORD` | Secret local, obligatoire pour que `/sante` soit valide |
+| `DB_PASS` | Secret local, obligatoire pour que `/sante` soit valide |
 | `DB_NAME` | Base contenant la table `resultats` |
 
 ## Demarrage

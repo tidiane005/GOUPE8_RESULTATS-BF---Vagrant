@@ -1,3 +1,4 @@
+import os
 import unittest
 from unittest.mock import patch
 
@@ -45,6 +46,28 @@ class TestApplication(unittest.TestCase):
         reponse = self.client.get("/info")
         self.assertEqual(reponse.status_code, 200)
         self.assertIn("serveur", reponse.get_json())
+
+    @patch("app.main.psycopg2.connect")
+    def test_connexion_db_utilise_db_pass(self, connexion):
+        variables = {
+            "DB_HOST": "192.168.63.31",
+            "DB_PORT": "5432",
+            "DB_USER": "resultats",
+            "DB_PASS": "secret-test",
+            "DB_NAME": "resultats_bf",
+        }
+        with patch.dict(os.environ, variables, clear=True):
+            main.connexion_db()
+
+        connexion.assert_called_once_with(
+            host="192.168.63.31",
+            port="5432",
+            user="resultats",
+            password="secret-test",
+            dbname="resultats_bf",
+            connect_timeout=3,
+            application_name="resultats-bf",
+        )
 
     @patch("app.main.connexion_db", return_value=FausseConnexion())
     def test_sante_base_disponible(self, _connexion):

@@ -15,13 +15,13 @@ function Get-AppNodes {
     $current = $null
 
     foreach ($line in Get-Content -LiteralPath $NodesFile) {
-        if ($line -match '^\s*-\s+:nom:\s*(\S+)\s*$') {
+        if ($line -match '^\s*-\s*:?\s*nom:\s*(\S+)\s*$') {
             $current = [ordered]@{ Name = $Matches[1]; Ip = $null; Role = $null }
         }
-        elseif ($null -ne $current -and $line -match '^\s*:ip:\s*(\S+)\s*$') {
+        elseif ($null -ne $current -and $line -match '^\s*:?\s*ip:\s*(\S+)\s*$') {
             $current.Ip = $Matches[1]
         }
-        elseif ($null -ne $current -and $line -match '^\s*:role:\s*(\S+)\s*$') {
+        elseif ($null -ne $current -and $line -match '^\s*:?\s*role:\s*(\S+)\s*$') {
             $current.Role = $Matches[1]
             if ($current.Role -eq "app") {
                 $nodes += [pscustomobject]$current
