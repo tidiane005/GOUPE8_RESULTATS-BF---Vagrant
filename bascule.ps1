@@ -55,18 +55,40 @@ $nb = vagrant ssh $Cible -c "sudo -u postgres psql -d resultats_bf -tAc 'SELECT 
 Etape "Lignes presentes sur $Cible : $nb  (50000 attendu)"
 
 # -- 3. Repointage des serveurs applicatifs (seulement ceux qui tournent) ---------
+# Fichier de configuration et service de l'ingenieur applicatif :
+# /etc/resultats-bf/app.env (DB_HOST) et app.service
+$repointes = 0
 foreach ($a in $apps) {
     $n = $a.nom
     $marche = vagrant status $n --machine-readable 2>$null | Select-String ',state,running'
     if (-not $marche) { Etape "$n non demarree : ignoree"; continue }
     Etape "Repointage de $n vers $ipCible"
-    vagrant ssh $n -c "if [ -f /opt/app/.env ]; then sudo sed -i 's/^DB_HOST=.*/DB_HOST=$ipCible/' /opt/app/.env && sudo systemctl restart resultats-app; else echo absent; fi" 2>$null | Out-Null
+    vagrant ssh $n -c "if [ -f /etc/resultats-bf/app.env ]; then sudo sed -i 's/^DB_HOST=.*/DB_HOST=$ipCible/' /etc/resultats-bf/app.env && sudo systemctl restart app.service && echo repointe; else echo absent; fi" 2>$null | Out-Null
+    $repointes++
+}
+
+# -- 4. Attente du retablissement du service via le repartiteur -----------------
+$tService = 0
+if ($repointes -gt 0) {
+    Etape "Attente du retablissement (http://localhost:8080/sante)"
+    $ok = $false
+    for ($i = 0; $i -lt 60; $i++) {
+        $code = curl.exe -s -o NUL -w '%{http_code}' --max-time 3 http://localhost:8080/sante
+        if ($code -eq '200') { $ok = $true; break }
+        Start-Sleep -Seconds 1
+    }
+    if (-not $ok) { Echec "le service n'est pas revenu en 60 s apres le repointage" }
+    $tService = $chrono.Elapsed.TotalSeconds
+    Etape "/sante repond 200 via le repartiteur"
+    $rep = curl.exe -s --max-time 5 "http://localhost:8080/resultat?matricule=MAT000001"
+    Etape "Verification /resultat : $rep"
 }
 $tFin = $chrono.Elapsed.TotalSeconds
 
 Write-Host ""
 Write-Host "== BASCULE TERMINEE"
 if ($Panne) { Write-Host ("Panne -> $Cible primaire et ecritures verifiees : {0:N1} s" -f ($tFin - $tPanne)) }
+if ($tService -gt 0) { Write-Host ("Panne -> service retabli via le repartiteur : {0:N1} s" -f ($tService - $tPanne)) }
 Write-Host ("Duree totale de la procedure : {0:N1} s" -f $tFin)
 $dureePromo = ($ligne -replace '^PROMU ','')
 Write-Host "(dont les appels 'vagrant ssh', lents sous Windows ; pg_promote seul : $dureePromo)"
