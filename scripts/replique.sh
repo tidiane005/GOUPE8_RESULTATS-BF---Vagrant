@@ -26,8 +26,14 @@ PG_CONFD="/etc/postgresql/${PG_VER}/main/conf.d"
 echo "==> [bdd2] Configuration reseau (PostgreSQL ${PG_VER})"
 mkdir -p "$PG_CONFD"
 cat > "${PG_CONFD}/90-resultats-bf.conf" << CFG
+# Memes reglages de replication que bdd1 : une replique doit avoir des valeurs
+# au moins egales a celles de son primaire, sinon elle refuse de demarrer.
+# Ainsi bdd2 peut devenir primaire et bdd1 redevenir replique (R6).
 listen_addresses = '*'
 hot_standby = on
+wal_level = replica
+max_wal_senders = 10
+wal_keep_size = 256MB
 CFG
 # pg_hba.conf n'est pas copie par pg_basebackup : on le prepare ici, ce qui
 # permet aussi a bdd2 de devenir primaire apres une bascule (R6)

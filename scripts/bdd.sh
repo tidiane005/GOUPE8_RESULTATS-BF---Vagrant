@@ -29,7 +29,7 @@ mkdir -p "$PG_CONFD"
 cat > "${PG_CONFD}/90-resultats-bf.conf" << CFG
 listen_addresses = '*'
 wal_level = replica
-max_wal_senders = 5
+max_wal_senders = 10
 wal_keep_size = 256MB
 CFG
 
