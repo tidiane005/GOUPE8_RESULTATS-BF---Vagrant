@@ -45,21 +45,22 @@ sudo sed -i 's/^DB_HOST=.*/DB_HOST=192.168.63.32/' /opt/app/.env
 sudo systemctl restart resultats-app
 ```
 
-## Mesures (un essai, PC de développement, VirtualBox)
+## Mesures (deux essais, PC de développement, VirtualBox)
 
-| Étape | Durée |
-|---|---|
-| `pg_promote()` seul (promotion PostgreSQL) | 0,67 s |
-| Procédure complète `bascule.ps1 -Panne bdd1` | 98,6 s |
-| dont panne simulée (arrêt de `bdd1`) | 14,6 s |
-| dont promotion + écriture vérifiée | 69,4 s |
-| Réintégration `reintegrer.ps1` (copie complète, base de 50 000 lignes) | 95,9 s |
+| Étape | Essai 1 | Essai 2 (machines reconstruites) |
+|---|---|---|
+| `pg_promote()` seul (promotion PostgreSQL) | 0,67 s | 1,27 s |
+| Procédure complète `bascule.ps1 -Panne bdd1` | 98,6 s | 111,3 s |
+| dont panne simulée (arrêt de `bdd1`) | 14,6 s | 16,7 s |
+| dont promotion + écriture vérifiée | 69,4 s | 77,9 s |
+| Réintégration `reintegrer.ps1` (copie complète, 50 000 lignes) | 95,9 s | 224,7 s |
+| dont redémarrage de `bdd1` par VirtualBox | 14,7 s | 124,0 s |
 
-La base est prête à écrire moins d'une seconde après l'ordre de promotion. Le reste du
-temps vient des appels `vagrant ssh` (environ 10 à 15 s chacun sous Windows), pas de
-PostgreSQL : chaque étape du script ouvre une connexion SSH. Ces chiffres viennent d'un seul
-essai sur une machine chargée ; ils varient d'un PC à l'autre et ne sont pas une garantie.
-Pas de mesure avec des serveurs applicatifs démarrés pour l'instant.
+La base est prête à écrire environ une seconde après l'ordre de promotion. Le reste du
+temps vient des appels `vagrant ssh` (environ 10 à 15 s chacun sous Windows) et du
+démarrage de la machine virtuelle, pas de PostgreSQL. Ces durées dépendent de la charge
+du PC (la réintégration varie du simple au double entre les deux essais) : ce sont des
+ordres de grandeur, pas des garanties. Mesures faites sans serveur applicatif démarré.
 
 ## Limites connues
 
