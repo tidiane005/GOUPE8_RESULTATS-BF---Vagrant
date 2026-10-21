@@ -1,0 +1,205 @@
+=== Scénario : V3_montee_en_charge ===
+Date            : 2026-10-20 21:48:01 +0000
+Poste           : MINGW64_NT-10.0-26200 3.6.10-5a1665c8.x86_64
+Groupe / réseau : 8 / 192.168.63.0/24
+Serveurs app    : N=2
+
+URL testée      : http://192.168.63.5
+Commande par mesure : ab -n 2000 -c 50 "http://192.168.63.5/resultat?matricule=1"
+Mesures par configuration : 3 (+ 1 échauffement non compté)
+
+[ECHEC]   La route /resultat?matricule=1 répond 200 (reçu : 404) -- sinon préciser MATRICULE=…
+--- Échauffement (200 requêtes, non compté)
+
+=== N=2 -- mesure 1/3 ===
+$ ab -n 2000 -c 50 "http://192.168.63.5/resultat?matricule=1"
+This is ApacheBench, Version 2.3 <$Revision: 1903618 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking 192.168.63.5 (be patient)
+Completed 200 requests
+Completed 400 requests
+Completed 600 requests
+Completed 800 requests
+Completed 1000 requests
+Completed 1200 requests
+Completed 1400 requests
+Completed 1600 requests
+Completed 1800 requests
+Completed 2000 requests
+Finished 2000 requests
+
+
+Server Software:        gunicorn
+Server Hostname:        192.168.63.5
+Server Port:            80
+
+Document Path:          /resultat?matricule=1
+Document Length:        35 bytes
+
+Concurrency Level:      50
+Time taken for tests:   65.087 seconds
+Complete requests:      2000
+Failed requests:        1407
+   (Connect: 0, Receive: 0, Length: 1407, Exceptions: 0)
+Non-2xx responses:      2000
+Total transferred:      427455 bytes
+HTML transferred:       171304 bytes
+Requests per second:    30.73 [#/sec] (mean)
+Time per request:       1627.182 [ms] (mean)
+Time per request:       32.544 [ms] (mean, across all concurrent requests)
+Transfer rate:          6.41 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        1   95 105.4     57     552
+Processing:     4 1452 2179.4    466   10911
+Waiting:        0 1408 2187.5    400   10783
+Total:          6 1547 2161.6    603   10915
+
+Percentage of the requests served within a certain time (ms)
+  50%    603
+  66%    883
+  75%   1502
+  80%   2556
+  90%   4962
+  95%   6475
+  98%   8860
+  99%   9496
+ 100%  10915 (longest request)
+
+=== N=2 -- mesure 2/3 ===
+$ ab -n 2000 -c 50 "http://192.168.63.5/resultat?matricule=1"
+This is ApacheBench, Version 2.3 <$Revision: 1903618 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking 192.168.63.5 (be patient)
+Completed 200 requests
+Completed 400 requests
+Completed 600 requests
+Completed 800 requests
+Completed 1000 requests
+Completed 1200 requests
+Completed 1400 requests
+Completed 1600 requests
+Completed 1800 requests
+Completed 2000 requests
+Finished 2000 requests
+
+
+Server Software:        gunicorn
+Server Hostname:        192.168.63.5
+Server Port:            80
+
+Document Path:          /resultat?matricule=1
+Document Length:        35 bytes
+
+Concurrency Level:      50
+Time taken for tests:   66.709 seconds
+Complete requests:      2000
+Failed requests:        1380
+   (Connect: 0, Receive: 0, Length: 1380, Exceptions: 0)
+Non-2xx responses:      2000
+Total transferred:      425700 bytes
+HTML transferred:       169360 bytes
+Requests per second:    29.98 [#/sec] (mean)
+Time per request:       1667.723 [ms] (mean)
+Time per request:       33.354 [ms] (mean, across all concurrent requests)
+Transfer rate:          6.23 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        1   65  69.9     35     332
+Processing:     4 1533 2416.4    456   11516
+Waiting:        0 1504 2418.7    423   11485
+Total:          9 1598 2410.7    554   11528
+
+Percentage of the requests served within a certain time (ms)
+  50%    554
+  66%    864
+  75%   1487
+  80%   2669
+  90%   5031
+  95%   7719
+  98%   9922
+  99%  10911
+ 100%  11528 (longest request)
+
+=== N=2 -- mesure 3/3 ===
+$ ab -n 2000 -c 50 "http://192.168.63.5/resultat?matricule=1"
+This is ApacheBench, Version 2.3 <$Revision: 1903618 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking 192.168.63.5 (be patient)
+Completed 200 requests
+Completed 400 requests
+Completed 600 requests
+Completed 800 requests
+Completed 1000 requests
+Completed 1200 requests
+Completed 1400 requests
+Completed 1600 requests
+Completed 1800 requests
+Completed 2000 requests
+Finished 2000 requests
+
+
+Server Software:        gunicorn
+Server Hostname:        192.168.63.5
+Server Port:            80
+
+Document Path:          /resultat?matricule=1
+Document Length:        35 bytes
+
+Concurrency Level:      50
+Time taken for tests:   60.052 seconds
+Complete requests:      2000
+Failed requests:        1453
+   (Connect: 0, Receive: 0, Length: 1453, Exceptions: 0)
+Non-2xx responses:      2000
+Total transferred:      430445 bytes
+HTML transferred:       174616 bytes
+Requests per second:    33.30 [#/sec] (mean)
+Time per request:       1501.289 [ms] (mean)
+Time per request:       30.026 [ms] (mean, across all concurrent requests)
+Transfer rate:          7.00 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        1   71  78.9     41     447
+Processing:     2 1377 2246.8    412   12455
+Waiting:        0 1340 2250.4    344   12445
+Total:          6 1448 2236.8    515   12463
+
+Percentage of the requests served within a certain time (ms)
+  50%    515
+  66%    829
+  75%   1336
+  80%   2197
+  90%   4842
+  95%   6355
+  98%   8625
+  99%  10604
+ 100%  12463 (longest request)
+
+Fenêtre à capturer dans Grafana pour N=2 : de 21:48:35 à 21:52:27
+
+================ SYNTHÈSE V3 ================
+N    mesure  req/s      moy(ms)      p50      p95      p99      échecs  non-2xx 
+2    1       30.73      1627.182     603      6475     9496     1407     2000    
+2    2       29.98      1667.723     554      7719     10911    1380     2000    
+2    3       33.30      1501.289     515      6355     10604    1453     2000    
+
+Médiane du débit (req/s) par configuration :
+  N=2 : 30.73 req/s
+
+Lecture : les VM partagent le processeur d'un seul poste (et ab aussi s'il tourne sur l'hôte).
+Un débit qui n'augmente pas, voire baisse, avec N est un résultat à commenter, pas un échec.
+[ECHEC]   Aucune requête en échec / non-2xx pendant les mesures
+
+------------------------------------------------------------
+RÉSULTAT GLOBAL : ÉCHEC (2 échec(s) sur 2 contrôle(s))
+Rapport enregistré : /c/Users/user/Desktop/GOUPE8_RESULTATS-BF---Vagrant/resultats/V3_montee_en_charge_20261020_214801.txt
