@@ -10,9 +10,11 @@ PORT="${HAPROXY_METRICS_PORT:-8405}"
 DEBUT="# BEGIN OBS-METRICS (engendre par scripts/lb-metrics.sh)"
 FIN="# END OBS-METRICS"
 
-if ! haproxy -vv 2>/dev/null | grep -qi "prometheus exporter"; then
-  echo "[lb-metrics] ERREUR : cet HAProxy n'embarque pas l'exporter Prometheus (version >= 2.4 requise)." >&2
-  exit 1
+# "haproxy -vv" liste les services intégrés sous la forme "prometheus-exporter" (avec un tiret).
+# Une fonction facultative (E2) ne doit JAMAIS faire échouer "vagrant up" : on avertit et on sort en 0.
+if ! haproxy -vv 2>/dev/null | grep -qiE "prometheus[- ]exporter"; then
+  echo "[lb-metrics] AVERTISSEMENT : cet HAProxy n'embarque pas l'exporter Prometheus (version >= 2.4 requise) : métriques HAProxy désactivées." >&2
+  exit 0
 fi
 [ -f "$CFG" ] || { echo "[lb-metrics] ERREUR : $CFG introuvable" >&2; exit 1; }
 
@@ -45,10 +47,10 @@ if haproxy -c -f "$CFG" >/dev/null 2>&1; then
   systemctl reload haproxy
   echo "[lb-metrics] métriques exposées sur :$PORT/metrics"
 else
-  echo "[lb-metrics] ERREUR : configuration invalide, retour arrière" >&2
+  echo "[lb-metrics] AVERTISSEMENT : configuration invalide avec le bloc de métriques, retour arrière (le répartiteur n'est pas modifié)" >&2
   haproxy -c -f "$CFG" >&2 || true
   cp -a "$CFG.avant-metrics" "$CFG"
   rm -f "$NOUVEAU"
-  exit 1
+  exit 0
 fi
 rm -f "$NOUVEAU"
