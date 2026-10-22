@@ -1,0 +1,90 @@
+=== Scénario : V4_panne_base ===
+Date            : 2026-10-22 01:57:28 +0000
+Poste           : MINGW64_NT-10.0-26200 3.6.10-5a1665c8.x86_64
+Groupe / réseau : 8 / 192.168.63.0/24
+Serveurs app    : N=2
+
+URL testée      : http://192.168.63.5
+Route /resultat : /resultat?matricule=MAT000001 (matricule MAT000001)
+  NB : le matricule 1 ne donnait pas 200 ; le matricule MAT000001 est utilisé à la place.
+===== État initial =====
+[ OK ]    /sante répond 200 avant la panne
+[ OK ]    /resultat répond 200 avant la panne
+bdd2 en recovery (réplique) : t   (attendu : t)
+
+===== Panne de bdd1 =====
+[t0 = 01:58:05]
+$ vagrant halt --force bdd1
+==> bdd1: Forcing shutdown of VM...
+(code retour : 0)
+[ OK ]    /sante via le répartiteur renvoie 503 après la panne
+Délai t0 -> premier 503 constaté : 16.57 s
+
+--- Réponses pendant la panne (résultat brut) ---
+$ curl -si http://192.168.63.21:3000/sante      (directement sur app1)
+
+
+$ curl -si http://192.168.63.5/sante                       (via le répartiteur)
+HTTP/1.1 503 Service Unavailable
+content-length: 107
+cache-control: no-cache
+content-type: text/html
+
+<html><body><h1>503 Service Unavailable</h1>
+No server is available to handle this request.
+</body></html>
+
+$ curl -si "http://192.168.63.5/resultat?matricule=MAT000001"
+HTTP/1.1 503 Service Unavailable
+content-length: 107
+cache-control: no-cache
+content-type: text/html
+
+<html><body><h1>503 Service Unavailable</h1>
+No server is available to handle this request.
+</body></html>
+
+[ OK ]    app1 /sante renvoie 503 (reçu : 503)
+[ OK ]    app1 /sante renvoie un corps non vide (pas de page blanche)
+[ OK ]    Aucune erreur de connexion brute côté répartiteur (code reçu : 503)
+
+===== Procédure de bascule =====
+[début bascule = 01:58:38]
+$ bash '/c/Users/user/Desktop/GOUPE8_RESULTATS-BF---Vagrant/scripts/bascule.sh'
+===> [1/2] Promotion de bdd2 (192.168.63.32)
+PROMU 0.56
+===> [2/2] Repointage des serveurs applicatifs démarrés
+  - app1
+  - app2
+===> Bascule terminée en 71 s
+(code retour : 0)
+[ OK ]    La procédure de bascule se termine sans erreur
+
+===== Retour du service =====
+[ OK ]    /sante redevient 200
+[ OK ]    /resultat redevient 200 (lecture sur la nouvelle primaire)
+bdd2 en recovery : f   (attendu après promotion : f)
+[ OK ]    bdd2 est promue (n'est plus en recovery)
+
+================ CHRONOMÈTRES V4 ================
+Panne -> premier 503 constaté          : 16.57 s
+Durée de la procédure de bascule       : 71.37 s
+Panne -> /sante de nouveau 200         : 105.24 s
+Panne -> /resultat de nouveau 200      : 105.57 s   (temps total de remise en service)
+
+--- Sonde /sante via le répartiteur (t0 = arrêt de bdd1) ---
+Requêtes envoyées par la sonde       : 225
+Requêtes en erreur (code non 2xx)    : 135 (60.00 %)
+  dont avant l événement             : 0
+Première / dernière erreur           : t0+11.62 s / t0+83.19 s
+Période dégradée (1re -> dernière err.) : 71.57 s
+Plus longue série d erreurs consécutives : 72.34 s
+Erreurs au-delà de 0 s après t0      : 135
+Hôtes servis AVANT l événement       : -=6
+Hôtes servis APRÈS l événement       : -=219
+
+Rappel : bdd1 reste arrêtée. Lancer V5 pour revenir à la topologie initiale.
+
+------------------------------------------------------------
+RÉSULTAT GLOBAL : SUCCÈS (10 contrôle(s) réussi(s))
+Rapport enregistré : /c/Users/user/Desktop/GOUPE8_RESULTATS-BF---Vagrant/resultats/V4_panne_base_20261022_015728.txt
