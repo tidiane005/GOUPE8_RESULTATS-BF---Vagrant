@@ -9,3 +9,4 @@ resultats/*
 !resultats/.gitkeep
 .env
 .vagrant/
+config/noeuds.yml
