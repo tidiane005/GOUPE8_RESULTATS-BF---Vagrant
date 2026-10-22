@@ -66,8 +66,8 @@ Vagrant.configure("2") do |config|
   config.vm.box_architecture = "amd64"
 
   NOEUDS.each do |n|
-    # obs n'est PAS demarree par `vagrant up` (budget memoire) : `vagrant up obs`.
-    config.vm.define n[:nom], autostart: (n[:role] != "obs") do |m|
+    # obs et lb2 ne sont PAS demarrees par `vagrant up` (budget memoire) : `vagrant up obs`et`vagrant up lb2`.
+    config.vm.define n[:nom], autostart: !["obs", "lb2"].include?(n[:nom]) do |m|
       m.vm.hostname = n[:nom]
       m.vm.network "private_network", ip: n[:ip]
 

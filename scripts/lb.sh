@@ -105,7 +105,7 @@ else
     PRIORITY=100
 fi
 
-VRRP_PASS="${VRRP_PASS:-secr3t_vrrp}"
+: "${VRRP_PASS:?VRRP_PASS manquant : le definir dans .env}"
 
 TMP_KA=$(mktemp)
 trap 'rm -f "$TMP_HAPROXY" "$TMP_KA"' EXIT
