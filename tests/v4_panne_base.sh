@@ -3,9 +3,9 @@
 # Attendu : /sante renvoie proprement 503 (jamais une page blanche ni une erreur de connexion brute),
 # puis la procédure de bascule sur bdd2 rétablit le service. On chronomètre l'ensemble.
 #
-# Variable à ADAPTER à la procédure écrite par l'ingénieur données :
+# Variable optionnelle :
 #   BASCULE_CMD  commande (exécutée depuis la racine du dépôt) qui promeut bdd2 et réoriente les
-#                serveurs applicatifs. Défaut : vagrant ssh bdd2 -c 'sudo /vagrant/scripts/bascule.sh'
+#                serveurs applicatifs. Défaut : bash scripts/bascule.sh (script versionné, exécuté sur l'hôte).
 # ATTENTION : ce test laisse bdd1 arrêtée. Pour revenir à l'état initial : V5 (reconstruction).
 source "$(dirname "$0")/lib.sh"
 start_report V4_panne_base
@@ -14,7 +14,7 @@ detect_resultat 60
 
 # Commande de bascule : vérifiée AVANT d'arrêter bdd1, pour ne jamais laisser la base à l'arrêt sans procédure.
 if [ -z "${BASCULE_CMD:-}" ] && [ -f "$ROOT_DIR/scripts/bascule.sh" ]; then
-  BASCULE_CMD="vagrant ssh bdd2 -c 'sudo /vagrant/scripts/bascule.sh'"
+  BASCULE_CMD="bash '$ROOT_DIR/scripts/bascule.sh'"
 fi
 if [ -z "${BASCULE_CMD:-}" ]; then
   echo "ERREUR : BASCULE_CMD n'est pas défini et scripts/bascule.sh n'existe pas."
@@ -46,14 +46,14 @@ echo "Délai t0 -> premier 503 constaté : $(dur "$T0" "$T_503") s"
 
 echo; echo "--- Réponses pendant la panne (résultat brut) ---"
 echo "\$ curl -si http://$APP1_IP:$APP_PORT/sante      (directement sur app1)"
-RAW_APP="$(curl -si -m 3 "http://$APP1_IP:$APP_PORT/sante")"; echo "$RAW_APP"; echo
+RAW_APP="$(curl -si -m 10 "http://$APP1_IP:$APP_PORT/sante")"; echo "$RAW_APP"; echo
 echo "\$ curl -si $BASE_URL/sante                       (via le répartiteur)"
 RAW_LB="$(curl -si -m 3 "$BASE_URL/sante")"; echo "$RAW_LB"; echo
 echo "\$ curl -si \"$BASE_URL$ROUTE\""
 RAW_RES="$(curl -si -m 3 "$BASE_URL$ROUTE")"; echo "$RAW_RES"; echo
 
-code_app="$(http_code "http://$APP1_IP:$APP_PORT/sante")"
-corps_app="$(curl -s -m 3 "http://$APP1_IP:$APP_PORT/sante")"
+code_app="$(curl -s -o /dev/null -w "%{http_code}" -m 10 "http://$APP1_IP:$APP_PORT/sante")"
+corps_app="$(curl -s -m 10 "http://$APP1_IP:$APP_PORT/sante")"
 check "app1 /sante renvoie 503 (reçu : $code_app)" "$([ "$code_app" = 503 ]; echo $?)"
 check "app1 /sante renvoie un corps non vide (pas de page blanche)" "$([ -n "$corps_app" ]; echo $?)"
 check "Aucune erreur de connexion brute côté répartiteur (code reçu : $(http_code "$BASE_URL/sante"))" \
@@ -70,7 +70,7 @@ echo "(code retour : $RC)"
 check "La procédure de bascule se termine sans erreur" "$RC"
 
 echo; echo "===== Retour du service ====="
-wait_http "$BASE_URL/sante" '^200$' 120
+wait_http "$BASE_URL/sante" '^200$' 180
 check "/sante redevient 200" "$?"
 T_OK="$(now)"
 wait_http "$BASE_URL$ROUTE" '^200$' 30

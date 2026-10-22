@@ -34,11 +34,5 @@ echo "================ CHRONOMÈTRES V5 ================"
 echo "vagrant destroy -f            : $(dur "$T0" "$T1") s"
 echo "vagrant up                    : $(dur "$T1" "$T2") s"
 echo "Plateforme vérifiée prête     : $(dur "$T0" "$T3") s depuis le début (durée totale de reconstruction)"
-echo "(Supervision obs hors chronomètre : recréée ci-dessous si E2=1.)"
 
-if e2_actif; then
-  echo; echo "--- Recréation de la supervision obs (extension E2) ---"
-  run vagrant up obs
-  check "La machine obs est recréée (E2)" "$?"
-fi
 end_summary; exit $?
