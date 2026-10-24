@@ -1,5 +1,5 @@
 === Scénario : V3_montee_en_charge ===
-Date            : 2026-10-21 17:22:07 +0000
+Date            : 2026-10-24 16:42:22 +0000
 Poste           : MINGW64_NT-10.0-26200 3.6.10-5a1665c8.x86_64
 Groupe / réseau : 8 / 192.168.63.0/24
 Serveurs app    : N=2
@@ -35,43 +35,28 @@ Bringing machine 'lb1' up with 'virtualbox' provider...
 (code retour : 0)
 $ vagrant provision lb1
 ==> lb1: Running provisioner: shell...
-    lb1: Running: C:/Users/user/AppData/Local/Temp/vagrant-shell20261021-18184-8hvvzm.sh
+    lb1: Running: C:/Users/user/AppData/Local/Temp/vagrant-shell20261024-23504-abdunc.sh
     lb1: ===> Installation de HAProxy, Keepalived, psmisc et Ruby...
     lb1: ===> Génération de la configuration HAProxy...
     lb1: ===> Validation de la configuration HAProxy...
     lb1: Configuration file is valid
-    lb1: ===> Configuration modifiée : rechargement de HAProxy...
+    lb1: ===> Configuration HAProxy inchangée.
     lb1: ===> Configuration de Keepalived (VRRP)...
     lb1: ===> Configuration Keepalived inchangée.
     lb1: ===> Terminé : VIP = 192.168.63.5, rôle = MASTER, interface = eth1
 ==> lb1: Running provisioner: metriques-haproxy (shell)...
     lb1: Running: script: metriques-haproxy
-    lb1: [lb-metrics] AVERTISSEMENT : cet HAProxy n'embarque pas l'exporter Prometheus (version >= 2.4 requise) : métriques HAProxy désactivées.
+    lb1: [lb-metrics] métriques exposées sur :8405/metrics
 ==> lb1: Running provisioner: node_exporter (shell)...
     lb1: Running: script: node_exporter
     lb1: [node_exporter] OK sur lb1 : port 9100
 (code retour : 0)
 $ vagrant provision lb2
-==> lb2: Running provisioner: shell...
-    lb2: Running: C:/Users/user/AppData/Local/Temp/vagrant-shell20261021-11480-vqx9s8.sh
-    lb2: ===> Installation de HAProxy, Keepalived, psmisc et Ruby...
-    lb2: ===> Génération de la configuration HAProxy...
-    lb2: ===> Validation de la configuration HAProxy...
-    lb2: Configuration file is valid
-    lb2: ===> Configuration HAProxy inchangée.
-    lb2: ===> Configuration de Keepalived (VRRP)...
-    lb2: ===> Configuration Keepalived inchangée.
-    lb2: ===> Terminé : VIP = 192.168.63.5, rôle = BACKUP, interface = eth1
-==> lb2: Running provisioner: metriques-haproxy (shell)...
-    lb2: Running: script: metriques-haproxy
-    lb2: [lb-metrics] métriques exposées sur :8405/metrics
-==> lb2: Running provisioner: node_exporter (shell)...
-    lb2: Running: script: node_exporter
-    lb2: [node_exporter] OK sur lb2 : port 9100
+==> lb2: VM not created. Moving on...
 (code retour : 0)
 $ vagrant provision obs
 ==> obs: Running provisioner: shell...
-    obs: Running: C:/Users/user/AppData/Local/Temp/vagrant-shell20261021-16860-5m5bh8.sh
+    obs: Running: C:/Users/user/AppData/Local/Temp/vagrant-shell20261024-38100-4bc42v.sh
     obs: [node_exporter] OK sur obs : port 9100
     obs: [obs] Prometheus : http://192.168.63.41:9090   (Status > Targets)
     obs: [obs] Grafana    : http://192.168.63.41:3000   (admin / mot de passe du .env)
@@ -109,35 +94,33 @@ Document Path:          /resultat?matricule=MAT000001
 Document Length:        87 bytes
 
 Concurrency Level:      50
-Time taken for tests:   29.587 seconds
+Time taken for tests:   53.514 seconds
 Complete requests:      2000
-Failed requests:        1353
-   (Connect: 0, Receive: 0, Length: 1353, Exceptions: 0)
-Non-2xx responses:      1353
-Total transferred:      453060 bytes
-HTML transferred:       201060 bytes
-Requests per second:    67.60 [#/sec] (mean)
-Time per request:       739.686 [ms] (mean)
-Time per request:       14.794 [ms] (mean, across all concurrent requests)
-Transfer rate:          14.95 [Kbytes/sec] received
+Failed requests:        0
+Total transferred:      426000 bytes
+HTML transferred:       174000 bytes
+Requests per second:    37.37 [#/sec] (mean)
+Time per request:       1337.845 [ms] (mean)
+Time per request:       26.757 [ms] (mean, across all concurrent requests)
+Transfer rate:          7.77 [Kbytes/sec] received
 
 Connection Times (ms)
               min  mean[+/-sd] median   max
-Connect:        1   25  38.8      9     287
-Processing:     3  691 1052.3    167    5119
-Waiting:        1  680 1055.8    153    5119
-Total:          4  716 1044.7    203    5122
+Connect:        1    3   5.8      2      68
+Processing:    76 1319 500.6   1285    2694
+Waiting:       30 1318 500.5   1284    2693
+Total:         84 1322 499.5   1287    2695
 
 Percentage of the requests served within a certain time (ms)
-  50%    203
-  66%    381
-  75%    864
-  80%   1466
-  90%   2294
-  95%   2921
-  98%   4304
-  99%   4545
- 100%   5122 (longest request)
+  50%   1287
+  66%   1530
+  75%   1666
+  80%   1767
+  90%   2033
+  95%   2176
+  98%   2331
+  99%   2420
+ 100%   2695 (longest request)
 
 === N=2 -- mesure 2/3 ===
 $ ab -n 2000 -c 50 "http://192.168.63.5/resultat?matricule=MAT000001"
@@ -167,35 +150,33 @@ Document Path:          /resultat?matricule=MAT000001
 Document Length:        87 bytes
 
 Concurrency Level:      50
-Time taken for tests:   44.196 seconds
+Time taken for tests:   51.759 seconds
 Complete requests:      2000
-Failed requests:        1051
-   (Connect: 0, Receive: 0, Length: 1051, Exceptions: 0)
-Non-2xx responses:      1051
-Total transferred:      447020 bytes
-HTML transferred:       195020 bytes
-Requests per second:    45.25 [#/sec] (mean)
-Time per request:       1104.889 [ms] (mean)
-Time per request:       22.098 [ms] (mean, across all concurrent requests)
-Transfer rate:          9.88 [Kbytes/sec] received
+Failed requests:        0
+Total transferred:      426000 bytes
+HTML transferred:       174000 bytes
+Requests per second:    38.64 [#/sec] (mean)
+Time per request:       1293.980 [ms] (mean)
+Time per request:       25.880 [ms] (mean, across all concurrent requests)
+Transfer rate:          8.04 [Kbytes/sec] received
 
 Connection Times (ms)
               min  mean[+/-sd] median   max
-Connect:        1   14  20.2      5     178
-Processing:     1 1060 1348.2    217    5940
-Waiting:        0 1052 1351.5    190    5939
-Total:          2 1074 1342.6    253    5942
+Connect:        1    3   6.1      2      55
+Processing:    86 1275 519.7   1231    3384
+Waiting:       34 1274 519.7   1230    3384
+Total:         89 1278 518.7   1232    3386
 
 Percentage of the requests served within a certain time (ms)
-  50%    253
-  66%   1344
-  75%   1959
-  80%   2266
-  90%   3054
-  95%   3602
-  98%   4937
-  99%   5305
- 100%   5942 (longest request)
+  50%   1232
+  66%   1394
+  75%   1514
+  80%   1604
+  90%   1988
+  95%   2180
+  98%   2639
+  99%   2949
+ 100%   3386 (longest request)
 
 === N=2 -- mesure 3/3 ===
 $ ab -n 2000 -c 50 "http://192.168.63.5/resultat?matricule=MAT000001"
@@ -207,10 +188,10 @@ Benchmarking 192.168.63.5 (be patient)
 Completed 200 requests
 Completed 400 requests
 Completed 600 requests
-^[[ICompleted 800 requests
+Completed 800 requests
 Completed 1000 requests
 Completed 1200 requests
-^[[OCompleted 1400 requests
+Completed 1400 requests
 Completed 1600 requests
 Completed 1800 requests
 Completed 2000 requests
@@ -225,37 +206,35 @@ Document Path:          /resultat?matricule=MAT000001
 Document Length:        87 bytes
 
 Concurrency Level:      50
-Time taken for tests:   39.610 seconds
+Time taken for tests:   51.786 seconds
 Complete requests:      2000
-Failed requests:        1158
-   (Connect: 0, Receive: 0, Length: 1158, Exceptions: 0)
-Non-2xx responses:      1158
-Total transferred:      449160 bytes
-HTML transferred:       197160 bytes
-Requests per second:    50.49 [#/sec] (mean)
-Time per request:       990.259 [ms] (mean)
-Time per request:       19.805 [ms] (mean, across all concurrent requests)
-Transfer rate:          11.07 [Kbytes/sec] received
+Failed requests:        0
+Total transferred:      426000 bytes
+HTML transferred:       174000 bytes
+Requests per second:    38.62 [#/sec] (mean)
+Time per request:       1294.651 [ms] (mean)
+Time per request:       25.893 [ms] (mean, across all concurrent requests)
+Transfer rate:          8.03 [Kbytes/sec] received
 
 Connection Times (ms)
               min  mean[+/-sd] median   max
-Connect:        1   27  51.5      6     348
-Processing:     2  931 1323.5    274    7278
-Waiting:        0  919 1327.4    237    7277
-Total:          4  958 1318.4    294    7292
+Connect:        1    3   5.0      2      44
+Processing:    74 1275 533.1   1280    3059
+Waiting:       31 1274 533.2   1280    3057
+Total:         77 1277 532.5   1282    3061
 
 Percentage of the requests served within a certain time (ms)
-  50%    294
-  66%    755
-  75%   1267
-  80%   1719
-  90%   2933
-  95%   3908
-  98%   5004
-  99%   5591
- 100%   7292 (longest request)
+  50%   1282
+  66%   1498
+  75%   1625
+  80%   1709
+  90%   1948
+  95%   2109
+  98%   2435
+  99%   2723
+ 100%   3061 (longest request)
 
-Fenêtre à capturer dans Grafana pour N=2 : de 17:23:44 à 17:26:15
+Fenêtre à capturer dans Grafana pour N=2 : de 16:43:49 à 16:47:01
 --- Passage à N=4 serveurs applicatifs ---
 $ vagrant up
 Bringing machine 'bdd1' up with 'virtualbox' provider...
@@ -280,21 +259,20 @@ Bringing machine 'lb1' up with 'virtualbox' provider...
 ==> app3: Importing base box 'bento/ubuntu-24.04'...
 [KProgress: 40%[K==> app3: Matching MAC address for NAT networking...
 ==> app3: Checking if box 'bento/ubuntu-24.04' version '202508.03.0' is up to date...
-==> app3: Setting the name of the VM: GOUPE8_RESULTATS-BF---Vagrant_app3_1792603604864_80743
-==> app3: Fixed port collision for 22 => 2222. Now on port 2206.
+==> app3: Setting the name of the VM: GOUPE8_RESULTATS-BF---Vagrant_app3_1792860444731_61251
+==> app3: Fixed port collision for 22 => 2222. Now on port 2204.
 ==> app3: Clearing any previously set network interfaces...
 ==> app3: Preparing network interfaces based on configuration...
     app3: Adapter 1: nat
     app3: Adapter 2: hostonly
 ==> app3: Forwarding ports...
-    app3: 22 (guest) => 2206 (host) (adapter 1)
+    app3: 22 (guest) => 2204 (host) (adapter 1)
 ==> app3: Running 'pre-boot' VM customizations...
 ==> app3: Booting VM...
 ==> app3: Waiting for machine to boot. This may take a few minutes...
-    app3: SSH address: 127.0.0.1:2206
+    app3: SSH address: 127.0.0.1:2204
     app3: SSH username: vagrant
     app3: SSH auth method: private key
-    app3: Warning: Connection reset. Retrying...
     app3: 
     app3: Vagrant insecure key detected. Vagrant will automatically replace
     app3: this with a newly generated keypair for better security.
@@ -318,18 +296,18 @@ Bringing machine 'lb1' up with 'virtualbox' provider...
 ==> app3: Mounting shared folders...
     app3: C:/Users/user/Desktop/GOUPE8_RESULTATS-BF---Vagrant => /vagrant
 ==> app3: Running provisioner: shell...
-    app3: Running: C:/Users/user/AppData/Local/Temp/vagrant-shell20261021-10796-33fs87.sh
+    app3: Running: C:/Users/user/AppData/Local/Temp/vagrant-shell20261024-28908-qofep9.sh
     app3: === Installation du microservice RESULTATS-BF ===
     app3: Get:1 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
     app3: Hit:2 http://us.archive.ubuntu.com/ubuntu noble InRelease
     app3: Get:3 http://us.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
-    app3: Get:4 http://us.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
-    app3: Get:5 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1,145 kB]
+    app3: Get:4 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1,146 kB]
+    app3: Get:5 http://us.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
     app3: Get:6 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1,400 kB]
     app3: Get:7 http://security.ubuntu.com/ubuntu noble-security/main Translation-en [231 kB]
     app3: Get:8 http://security.ubuntu.com/ubuntu noble-security/main amd64 Components [46.4 kB]
     app3: Get:9 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1,713 kB]
-    app3: Get:10 http://us.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [309 kB]
+    app3: Get:10 http://us.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [310 kB]
     app3: Get:11 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 Components [181 kB]
     app3: Get:12 http://us.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1,805 kB]
     app3: Get:13 http://security.ubuntu.com/ubuntu noble-security/restricted Translation-en [392 kB]
@@ -350,7 +328,7 @@ Bringing machine 'lb1' up with 'virtualbox' provider...
     app3: Get:28 http://us.archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Components [940 B]
     app3: Get:29 http://us.archive.ubuntu.com/ubuntu noble-backports/main amd64 Packages [40.6 kB]
     app3: Get:30 http://us.archive.ubuntu.com/ubuntu noble-backports/main Translation-en [9,172 B]
-    app3: Get:31 http://us.archive.ubuntu.com/ubuntu noble-backports/main amd64 Components [5,744 B]
+    app3: Get:31 http://us.archive.ubuntu.com/ubuntu noble-backports/main amd64 Components [5,764 B]
     app3: Get:32 http://us.archive.ubuntu.com/ubuntu noble-backports/restricted amd64 Components [212 B]
     app3: Get:33 http://us.archive.ubuntu.com/ubuntu noble-backports/universe amd64 Packages [31.0 kB]
     app3: Get:34 http://us.archive.ubuntu.com/ubuntu noble-backports/universe Translation-en [18.6 kB]
@@ -358,7 +336,7 @@ Bringing machine 'lb1' up with 'virtualbox' provider...
     app3: Get:36 http://us.archive.ubuntu.com/ubuntu noble-backports/multiverse amd64 Packages [748 B]
     app3: Get:37 http://us.archive.ubuntu.com/ubuntu noble-backports/multiverse Translation-en [340 B]
     app3: Get:38 http://us.archive.ubuntu.com/ubuntu noble-backports/multiverse amd64 Components [212 B]
-    app3: Fetched 12.2 MB in 9s (1,412 kB/s)
+    app3: Fetched 12.2 MB in 9s (1,293 kB/s)
     app3: Reading package lists...
     app3: Reading package lists...
     app3: Building dependency tree...
@@ -426,7 +404,7 @@ Bringing machine 'lb1' up with 'virtualbox' provider...
     app3: Get:7 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 python3-minimal amd64 3.12.3-0ubuntu2.1 [27.4 kB]
     app3: Get:8 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 python3 amd64 3.12.3-0ubuntu2.1 [23.0 kB]
     app3: Get:9 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 libexpat1 amd64 2.6.1-2ubuntu0.6 [98.9 kB]
-    app3: Get:10 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 zlib1g amd64 1:1.3.dfsg-3.1ubuntu2.2 [63.0 kB]
+    app3: Get:10 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 zlib1g amd64 1:1.3.dfsg-3.1ubuntu2.3 [63.2 kB]
     app3: Get:11 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 libpython3.12t64 amd64 3.12.3-1ubuntu0.17 [2,348 kB]
     app3: Get:12 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 python3.12 amd64 3.12.3-1ubuntu0.17 [651 kB]
     app3: Get:13 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 libpython3.12-stdlib amd64 3.12.3-1ubuntu0.17 [2,071 kB]
@@ -506,7 +484,7 @@ Bringing machine 'lb1' up with 'virtualbox' provider...
     app3: Get:87 http://us.archive.ubuntu.com/ubuntu noble/main amd64 libjs-jquery all 3.6.1+dfsg+~3.5.14-1 [328 kB]
     app3: Get:88 http://us.archive.ubuntu.com/ubuntu noble/main amd64 libjs-underscore all 1.13.4~dfsg+~1.11.4-3 [118 kB]
     app3: Get:89 http://us.archive.ubuntu.com/ubuntu noble/main amd64 libjs-sphinxdoc all 7.2.6-6 [149 kB]
-    app3: Get:90 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 zlib1g-dev amd64 1:1.3.dfsg-3.1ubuntu2.2 [894 kB]
+    app3: Get:90 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 zlib1g-dev amd64 1:1.3.dfsg-3.1ubuntu2.3 [894 kB]
     app3: Get:91 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 libpython3.12-dev amd64 3.12.3-1ubuntu0.17 [5,684 kB]
     app3: Get:92 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 libpython3-dev amd64 3.12.3-0ubuntu2.1 [10.3 kB]
     app3: Get:93 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 linux-tools-common all 6.8.0-147.147 [434 kB]
@@ -520,7 +498,7 @@ Bringing machine 'lb1' up with 'virtualbox' provider...
     app3: Get:101 http://us.archive.ubuntu.com/ubuntu noble-updates/universe amd64 python3.12-venv amd64 3.12.3-1ubuntu0.17 [5,684 B]
     app3: Get:102 http://us.archive.ubuntu.com/ubuntu noble-updates/universe amd64 python3-venv amd64 3.12.3-0ubuntu2.1 [1,032 B]
     app3: Preconfiguring packages ...
-    app3: Fetched 105 MB in 36s (2,904 kB/s)
+    app3: Fetched 105 MB in 1min 22s (1,275 kB/s)
     app3: (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 50418 files and directories currently installed.)
     app3: Preparing to unpack .../dpkg_1.22.6ubuntu6.6_amd64.deb ...
     app3: Unpacking dpkg (1.22.6ubuntu6.6) over (1.22.6ubuntu6.1) ...
@@ -554,9 +532,9 @@ Bringing machine 'lb1' up with 'virtualbox' provider...
     app3: Unpacking python3 (3.12.3-0ubuntu2.1) over (3.12.3-0ubuntu2) ...
     app3: Preparing to unpack .../libexpat1_2.6.1-2ubuntu0.6_amd64.deb ...
     app3: Unpacking libexpat1:amd64 (2.6.1-2ubuntu0.6) over (2.6.1-2ubuntu0.3) ...
-    app3: Preparing to unpack .../zlib1g_1%3a1.3.dfsg-3.1ubuntu2.2_amd64.deb ...
-    app3: Unpacking zlib1g:amd64 (1:1.3.dfsg-3.1ubuntu2.2) over (1:1.3.dfsg-3.1ubuntu2.1) ...
-    app3: Setting up zlib1g:amd64 (1:1.3.dfsg-3.1ubuntu2.2) ...
+    app3: Preparing to unpack .../zlib1g_1%3a1.3.dfsg-3.1ubuntu2.3_amd64.deb ...
+    app3: Unpacking zlib1g:amd64 (1:1.3.dfsg-3.1ubuntu2.3) over (1:1.3.dfsg-3.1ubuntu2.1) ...
+    app3: Setting up zlib1g:amd64 (1:1.3.dfsg-3.1ubuntu2.3) ...
     app3: (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 50418 files and directories currently installed.)
     app3: Preparing to unpack .../00-libpython3.12t64_3.12.3-1ubuntu0.17_amd64.deb ...
     app3: Unpacking libpython3.12t64:amd64 (3.12.3-1ubuntu0.17) over (3.12.3-1ubuntu0.7) ...
@@ -789,8 +767,8 @@ Bringing machine 'lb1' up with 'virtualbox' provider...
     app3: Preparing to unpack .../78-libjs-sphinxdoc_7.2.6-6_all.deb ...
     app3: Unpacking libjs-sphinxdoc (7.2.6-6) ...
     app3: Selecting previously unselected package zlib1g-dev:amd64.
-    app3: Preparing to unpack .../79-zlib1g-dev_1%3a1.3.dfsg-3.1ubuntu2.2_amd64.deb ...
-    app3: Unpacking zlib1g-dev:amd64 (1:1.3.dfsg-3.1ubuntu2.2) ...
+    app3: Preparing to unpack .../79-zlib1g-dev_1%3a1.3.dfsg-3.1ubuntu2.3_amd64.deb ...
+    app3: Unpacking zlib1g-dev:amd64 (1:1.3.dfsg-3.1ubuntu2.3) ...
     app3: Selecting previously unselected package libpython3.12-dev:amd64.
     app3: Preparing to unpack .../80-libpython3.12-dev_3.12.3-1ubuntu0.17_amd64.deb ...
     app3: Unpacking libpython3.12-dev:amd64 (3.12.3-1ubuntu0.17) ...
@@ -905,7 +883,7 @@ Bringing machine 'lb1' up with 'virtualbox' provider...
     app3: Setting up python3-venv (3.12.3-0ubuntu2.1) ...
     app3: Setting up gcc-13 (13.3.0-6ubuntu2~24.04.1) ...
     app3: Setting up python3-pip (24.0+dfsg-1ubuntu1.3) ...
-    app3: Setting up zlib1g-dev:amd64 (1:1.3.dfsg-3.1ubuntu2.2) ...
+    app3: Setting up zlib1g-dev:amd64 (1:1.3.dfsg-3.1ubuntu2.3) ...
     app3: Setting up cpp (4:13.2.0-7ubuntu1) ...
     app3: Setting up g++-13-x86-64-linux-gnu (13.3.0-6ubuntu2~24.04.1) ...
     app3: Setting up gcc-x86-64-linux-gnu (4:13.2.0-7ubuntu1) ...
@@ -945,8 +923,8 @@ Bringing machine 'lb1' up with 'virtualbox' provider...
     app3: No containers need to be restarted.
     app3: 
     app3: User sessions running outdated binaries:
-    app3:  vagrant @ session #3: bash[1826], sshd[1388]
-    app3:  vagrant @ user manager service: systemd[972]
+    app3:  vagrant @ session #3: bash[1830], sshd[1391]
+    app3:  vagrant @ user manager service: systemd[1002]
     app3: 
     app3: No VM guests are running outdated hypervisor (qemu) binaries on this host.
     app3: Collecting Flask==3.1.1 (from -r /opt/resultats-bf/app/requirements.txt (line 1))
@@ -970,22 +948,22 @@ Bringing machine 'lb1' up with 'virtualbox' provider...
     app3: Collecting packaging (from gunicorn==23.0.0->-r /opt/resultats-bf/app/requirements.txt (line 2))
     app3:   Downloading packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
     app3: Downloading flask-3.1.1-py3-none-any.whl (103 kB)
-    app3:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 103.3/103.3 kB 1.1 MB/s eta 0:00:00
+    app3:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 103.3/103.3 kB 1.2 MB/s eta 0:00:00
     app3: Downloading gunicorn-23.0.0-py3-none-any.whl (85 kB)
-    app3:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 85.0/85.0 kB 1.4 MB/s eta 0:00:00
+    app3:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 85.0/85.0 kB 530.9 kB/s eta 0:00:00
     app3: Downloading psycopg2_binary-2.9.10-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.0 MB)
     app3:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.0/3.0 MB 1.5 MB/s eta 0:00:00
     app3: Downloading blinker-1.9.0-py3-none-any.whl (8.5 kB)
     app3: Downloading click-8.5.0-py3-none-any.whl (125 kB)
-    app3:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 125.3/125.3 kB 1.6 MB/s eta 0:00:00
+    app3:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 125.3/125.3 kB 2.8 MB/s eta 0:00:00
     app3: Downloading itsdangerous-2.2.0-py3-none-any.whl (16 kB)
     app3: Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
-    app3:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 134.9/134.9 kB 2.3 MB/s eta 0:00:00
+    app3:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 134.9/134.9 kB 2.6 MB/s eta 0:00:00
     app3: Downloading markupsafe-3.0.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (22 kB)
     app3: Downloading werkzeug-3.1.9-py3-none-any.whl (228 kB)
-    app3:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 228.7/228.7 kB 3.2 MB/s eta 0:00:00
+    app3:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 228.7/228.7 kB 2.6 MB/s eta 0:00:00
     app3: Downloading packaging-26.3-py3-none-any.whl (129 kB)
-    app3:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 130.0/130.0 kB 3.0 MB/s eta 0:00:00
+    app3:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 130.0/130.0 kB 3.5 MB/s eta 0:00:00
     app3: Installing collected packages: psycopg2-binary, packaging, markupsafe, itsdangerous, click, blinker, werkzeug, jinja2, gunicorn, Flask
     app3: Successfully installed Flask-3.1.1 blinker-1.9.0 click-8.5.0 gunicorn-23.0.0 itsdangerous-2.2.0 jinja2-3.1.6 markupsafe-3.0.4 packaging-26.3 psycopg2-binary-2.9.10 werkzeug-3.1.9
     app3: Created symlink /etc/systemd/system/multi-user.target.wants/app.service → /etc/systemd/system/app.service.
@@ -1013,26 +991,26 @@ Bringing machine 'lb1' up with 'virtualbox' provider...
     app3: No containers need to be restarted.
     app3: 
     app3: User sessions running outdated binaries:
-    app3:  vagrant @ session #3: sshd[1388]
-    app3:  vagrant @ user manager service: systemd[972]
+    app3:  vagrant @ session #3: sshd[1391]
+    app3:  vagrant @ user manager service: systemd[1002]
     app3: 
     app3: No VM guests are running outdated hypervisor (qemu) binaries on this host.
     app3: [node_exporter] OK sur app3 : port 9100
 ==> app4: Importing base box 'bento/ubuntu-24.04'...
 [KProgress: 40%[K==> app4: Matching MAC address for NAT networking...
 ==> app4: Checking if box 'bento/ubuntu-24.04' version '202508.03.0' is up to date...
-==> app4: Setting the name of the VM: GOUPE8_RESULTATS-BF---Vagrant_app4_1792603863012_20923
-==> app4: Fixed port collision for 22 => 2222. Now on port 2207.
+==> app4: Setting the name of the VM: GOUPE8_RESULTATS-BF---Vagrant_app4_1792860679793_60974
+==> app4: Fixed port collision for 22 => 2222. Now on port 2206.
 ==> app4: Clearing any previously set network interfaces...
 ==> app4: Preparing network interfaces based on configuration...
     app4: Adapter 1: nat
     app4: Adapter 2: hostonly
 ==> app4: Forwarding ports...
-    app4: 22 (guest) => 2207 (host) (adapter 1)
+    app4: 22 (guest) => 2206 (host) (adapter 1)
 ==> app4: Running 'pre-boot' VM customizations...
 ==> app4: Booting VM...
 ==> app4: Waiting for machine to boot. This may take a few minutes...
-    app4: SSH address: 127.0.0.1:2207
+    app4: SSH address: 127.0.0.1:2206
     app4: SSH username: vagrant
     app4: SSH auth method: private key
     app4: 
@@ -1058,47 +1036,47 @@ Bringing machine 'lb1' up with 'virtualbox' provider...
 ==> app4: Mounting shared folders...
     app4: C:/Users/user/Desktop/GOUPE8_RESULTATS-BF---Vagrant => /vagrant
 ==> app4: Running provisioner: shell...
-    app4: Running: C:/Users/user/AppData/Local/Temp/vagrant-shell20261021-10796-qv6lj0.sh
+    app4: Running: C:/Users/user/AppData/Local/Temp/vagrant-shell20261024-28908-32yd1h.sh
     app4: === Installation du microservice RESULTATS-BF ===
     app4: Get:1 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
     app4: Hit:2 http://us.archive.ubuntu.com/ubuntu noble InRelease
     app4: Get:3 http://us.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
-    app4: Get:4 http://us.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
-    app4: Get:5 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1,145 kB]
+    app4: Get:4 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1,146 kB]
+    app4: Get:5 http://us.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
     app4: Get:6 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1,400 kB]
     app4: Get:7 http://security.ubuntu.com/ubuntu noble-security/main Translation-en [231 kB]
     app4: Get:8 http://security.ubuntu.com/ubuntu noble-security/main amd64 Components [46.4 kB]
     app4: Get:9 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1,713 kB]
-    app4: Get:10 http://security.ubuntu.com/ubuntu noble-security/restricted Translation-en [392 kB]
-    app4: Get:11 http://us.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [309 kB]
-    app4: Get:12 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 Components [181 kB]
-    app4: Get:13 http://us.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1,805 kB]
-    app4: Get:14 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Components [212 B]
-    app4: Get:15 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1,222 kB]
-    app4: Get:16 http://us.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [411 kB]
-    app4: Get:17 http://us.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Components [212 B]
-    app4: Get:18 http://us.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1,706 kB]
-    app4: Get:19 http://us.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [342 kB]
-    app4: Get:20 http://us.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Components [388 kB]
-    app4: Get:21 http://us.archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [50.7 kB]
-    app4: Get:22 http://us.archive.ubuntu.com/ubuntu noble-updates/multiverse Translation-en [14.0 kB]
-    app4: Get:23 http://us.archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Components [940 B]
-    app4: Get:24 http://us.archive.ubuntu.com/ubuntu noble-backports/main amd64 Packages [40.6 kB]
-    app4: Get:25 http://us.archive.ubuntu.com/ubuntu noble-backports/main Translation-en [9,172 B]
-    app4: Get:26 http://us.archive.ubuntu.com/ubuntu noble-backports/main amd64 Components [5,744 B]
-    app4: Get:27 http://us.archive.ubuntu.com/ubuntu noble-backports/restricted amd64 Components [212 B]
-    app4: Get:28 http://us.archive.ubuntu.com/ubuntu noble-backports/universe amd64 Packages [31.0 kB]
-    app4: Get:29 http://security.ubuntu.com/ubuntu noble-security/universe Translation-en [246 kB]
-    app4: Get:30 http://us.archive.ubuntu.com/ubuntu noble-backports/universe Translation-en [18.6 kB]
-    app4: Get:31 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Components [76.3 kB]
-    app4: Get:32 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Packages [45.4 kB]
-    app4: Get:33 http://security.ubuntu.com/ubuntu noble-security/multiverse Translation-en [12.1 kB]
-    app4: Get:34 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Components [208 B]
+    app4: Get:10 http://us.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [310 kB]
+    app4: Get:11 http://security.ubuntu.com/ubuntu noble-security/restricted Translation-en [392 kB]
+    app4: Get:12 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Components [212 B]
+    app4: Get:13 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1,222 kB]
+    app4: Get:14 http://security.ubuntu.com/ubuntu noble-security/universe Translation-en [246 kB]
+    app4: Get:15 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Components [76.3 kB]
+    app4: Get:16 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Packages [45.4 kB]
+    app4: Get:17 http://security.ubuntu.com/ubuntu noble-security/multiverse Translation-en [12.1 kB]
+    app4: Get:18 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Components [208 B]
+    app4: Get:19 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 Components [181 kB]
+    app4: Get:20 http://us.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1,805 kB]
+    app4: Get:21 http://us.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [411 kB]
+    app4: Get:22 http://us.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Components [212 B]
+    app4: Get:23 http://us.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1,706 kB]
+    app4: Get:24 http://us.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [342 kB]
+    app4: Get:25 http://us.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Components [388 kB]
+    app4: Get:26 http://us.archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [50.7 kB]
+    app4: Get:27 http://us.archive.ubuntu.com/ubuntu noble-updates/multiverse Translation-en [14.0 kB]
+    app4: Get:28 http://us.archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Components [940 B]
+    app4: Get:29 http://us.archive.ubuntu.com/ubuntu noble-backports/main amd64 Packages [40.6 kB]
+    app4: Get:30 http://us.archive.ubuntu.com/ubuntu noble-backports/main Translation-en [9,172 B]
+    app4: Get:31 http://us.archive.ubuntu.com/ubuntu noble-backports/main amd64 Components [5,764 B]
+    app4: Get:32 http://us.archive.ubuntu.com/ubuntu noble-backports/restricted amd64 Components [212 B]
+    app4: Get:33 http://us.archive.ubuntu.com/ubuntu noble-backports/universe amd64 Packages [31.0 kB]
+    app4: Get:34 http://us.archive.ubuntu.com/ubuntu noble-backports/universe Translation-en [18.6 kB]
     app4: Get:35 http://us.archive.ubuntu.com/ubuntu noble-backports/universe amd64 Components [12.6 kB]
     app4: Get:36 http://us.archive.ubuntu.com/ubuntu noble-backports/multiverse amd64 Packages [748 B]
     app4: Get:37 http://us.archive.ubuntu.com/ubuntu noble-backports/multiverse Translation-en [340 B]
     app4: Get:38 http://us.archive.ubuntu.com/ubuntu noble-backports/multiverse amd64 Components [212 B]
-    app4: Fetched 12.2 MB in 7s (1,634 kB/s)
+    app4: Fetched 12.2 MB in 27s (458 kB/s)
     app4: Reading package lists...
     app4: Reading package lists...
     app4: Building dependency tree...
@@ -1166,7 +1144,7 @@ Bringing machine 'lb1' up with 'virtualbox' provider...
     app4: Get:7 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 python3-minimal amd64 3.12.3-0ubuntu2.1 [27.4 kB]
     app4: Get:8 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 python3 amd64 3.12.3-0ubuntu2.1 [23.0 kB]
     app4: Get:9 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 libexpat1 amd64 2.6.1-2ubuntu0.6 [98.9 kB]
-    app4: Get:10 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 zlib1g amd64 1:1.3.dfsg-3.1ubuntu2.2 [63.0 kB]
+    app4: Get:10 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 zlib1g amd64 1:1.3.dfsg-3.1ubuntu2.3 [63.2 kB]
     app4: Get:11 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 libpython3.12t64 amd64 3.12.3-1ubuntu0.17 [2,348 kB]
     app4: Get:12 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 python3.12 amd64 3.12.3-1ubuntu0.17 [651 kB]
     app4: Get:13 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 libpython3.12-stdlib amd64 3.12.3-1ubuntu0.17 [2,071 kB]
@@ -1246,7 +1224,7 @@ Bringing machine 'lb1' up with 'virtualbox' provider...
     app4: Get:87 http://us.archive.ubuntu.com/ubuntu noble/main amd64 libjs-jquery all 3.6.1+dfsg+~3.5.14-1 [328 kB]
     app4: Get:88 http://us.archive.ubuntu.com/ubuntu noble/main amd64 libjs-underscore all 1.13.4~dfsg+~1.11.4-3 [118 kB]
     app4: Get:89 http://us.archive.ubuntu.com/ubuntu noble/main amd64 libjs-sphinxdoc all 7.2.6-6 [149 kB]
-    app4: Get:90 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 zlib1g-dev amd64 1:1.3.dfsg-3.1ubuntu2.2 [894 kB]
+    app4: Get:90 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 zlib1g-dev amd64 1:1.3.dfsg-3.1ubuntu2.3 [894 kB]
     app4: Get:91 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 libpython3.12-dev amd64 3.12.3-1ubuntu0.17 [5,684 kB]
     app4: Get:92 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 libpython3-dev amd64 3.12.3-0ubuntu2.1 [10.3 kB]
     app4: Get:93 http://us.archive.ubuntu.com/ubuntu noble-updates/main amd64 linux-tools-common all 6.8.0-147.147 [434 kB]
@@ -1260,7 +1238,7 @@ Bringing machine 'lb1' up with 'virtualbox' provider...
     app4: Get:101 http://us.archive.ubuntu.com/ubuntu noble-updates/universe amd64 python3.12-venv amd64 3.12.3-1ubuntu0.17 [5,684 B]
     app4: Get:102 http://us.archive.ubuntu.com/ubuntu noble-updates/universe amd64 python3-venv amd64 3.12.3-0ubuntu2.1 [1,032 B]
     app4: Preconfiguring packages ...
-    app4: Fetched 105 MB in 36s (2,927 kB/s)
+    app4: Fetched 105 MB in 1min 36s (1,096 kB/s)
     app4: (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 50418 files and directories currently installed.)
     app4: Preparing to unpack .../dpkg_1.22.6ubuntu6.6_amd64.deb ...
     app4: Unpacking dpkg (1.22.6ubuntu6.6) over (1.22.6ubuntu6.1) ...
@@ -1294,9 +1272,9 @@ Bringing machine 'lb1' up with 'virtualbox' provider...
     app4: Unpacking python3 (3.12.3-0ubuntu2.1) over (3.12.3-0ubuntu2) ...
     app4: Preparing to unpack .../libexpat1_2.6.1-2ubuntu0.6_amd64.deb ...
     app4: Unpacking libexpat1:amd64 (2.6.1-2ubuntu0.6) over (2.6.1-2ubuntu0.3) ...
-    app4: Preparing to unpack .../zlib1g_1%3a1.3.dfsg-3.1ubuntu2.2_amd64.deb ...
-    app4: Unpacking zlib1g:amd64 (1:1.3.dfsg-3.1ubuntu2.2) over (1:1.3.dfsg-3.1ubuntu2.1) ...
-    app4: Setting up zlib1g:amd64 (1:1.3.dfsg-3.1ubuntu2.2) ...
+    app4: Preparing to unpack .../zlib1g_1%3a1.3.dfsg-3.1ubuntu2.3_amd64.deb ...
+    app4: Unpacking zlib1g:amd64 (1:1.3.dfsg-3.1ubuntu2.3) over (1:1.3.dfsg-3.1ubuntu2.1) ...
+    app4: Setting up zlib1g:amd64 (1:1.3.dfsg-3.1ubuntu2.3) ...
     app4: (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 50418 files and directories currently installed.)
     app4: Preparing to unpack .../00-libpython3.12t64_3.12.3-1ubuntu0.17_amd64.deb ...
     app4: Unpacking libpython3.12t64:amd64 (3.12.3-1ubuntu0.17) over (3.12.3-1ubuntu0.7) ...
@@ -1529,8 +1507,8 @@ Bringing machine 'lb1' up with 'virtualbox' provider...
     app4: Preparing to unpack .../78-libjs-sphinxdoc_7.2.6-6_all.deb ...
     app4: Unpacking libjs-sphinxdoc (7.2.6-6) ...
     app4: Selecting previously unselected package zlib1g-dev:amd64.
-    app4: Preparing to unpack .../79-zlib1g-dev_1%3a1.3.dfsg-3.1ubuntu2.2_amd64.deb ...
-    app4: Unpacking zlib1g-dev:amd64 (1:1.3.dfsg-3.1ubuntu2.2) ...
+    app4: Preparing to unpack .../79-zlib1g-dev_1%3a1.3.dfsg-3.1ubuntu2.3_amd64.deb ...
+    app4: Unpacking zlib1g-dev:amd64 (1:1.3.dfsg-3.1ubuntu2.3) ...
     app4: Selecting previously unselected package libpython3.12-dev:amd64.
     app4: Preparing to unpack .../80-libpython3.12-dev_3.12.3-1ubuntu0.17_amd64.deb ...
     app4: Unpacking libpython3.12-dev:amd64 (3.12.3-1ubuntu0.17) ...
@@ -1645,7 +1623,7 @@ Bringing machine 'lb1' up with 'virtualbox' provider...
     app4: Setting up python3-venv (3.12.3-0ubuntu2.1) ...
     app4: Setting up gcc-13 (13.3.0-6ubuntu2~24.04.1) ...
     app4: Setting up python3-pip (24.0+dfsg-1ubuntu1.3) ...
-    app4: Setting up zlib1g-dev:amd64 (1:1.3.dfsg-3.1ubuntu2.2) ...
+    app4: Setting up zlib1g-dev:amd64 (1:1.3.dfsg-3.1ubuntu2.3) ...
     app4: Setting up cpp (4:13.2.0-7ubuntu1) ...
     app4: Setting up g++-13-x86-64-linux-gnu (13.3.0-6ubuntu2~24.04.1) ...
     app4: Setting up gcc-x86-64-linux-gnu (4:13.2.0-7ubuntu1) ...
@@ -1685,8 +1663,8 @@ Bringing machine 'lb1' up with 'virtualbox' provider...
     app4: No containers need to be restarted.
     app4: 
     app4: User sessions running outdated binaries:
-    app4:  vagrant @ session #3: bash[1830], sshd[1391]
-    app4:  vagrant @ user manager service: systemd[1005]
+    app4:  vagrant @ session #3: bash[1823], sshd[1392]
+    app4:  vagrant @ user manager service: systemd[999]
     app4: 
     app4: No VM guests are running outdated hypervisor (qemu) binaries on this host.
     app4: Collecting Flask==3.1.1 (from -r /opt/resultats-bf/app/requirements.txt (line 1))
@@ -1710,22 +1688,22 @@ Bringing machine 'lb1' up with 'virtualbox' provider...
     app4: Collecting packaging (from gunicorn==23.0.0->-r /opt/resultats-bf/app/requirements.txt (line 2))
     app4:   Downloading packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
     app4: Downloading flask-3.1.1-py3-none-any.whl (103 kB)
-    app4:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 103.3/103.3 kB 1.1 MB/s eta 0:00:00
+    app4:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 103.3/103.3 kB 442.0 kB/s eta 0:00:00
     app4: Downloading gunicorn-23.0.0-py3-none-any.whl (85 kB)
-    app4:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 85.0/85.0 kB 3.3 MB/s eta 0:00:00
+    app4:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 85.0/85.0 kB 1.3 MB/s eta 0:00:00
     app4: Downloading psycopg2_binary-2.9.10-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.0 MB)
-    app4:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.0/3.0 MB 1.8 MB/s eta 0:00:00
+    app4:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.0/3.0 MB 526.2 kB/s eta 0:00:00
     app4: Downloading blinker-1.9.0-py3-none-any.whl (8.5 kB)
     app4: Downloading click-8.5.0-py3-none-any.whl (125 kB)
-    app4:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 125.3/125.3 kB 2.6 MB/s eta 0:00:00
+    app4:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 125.3/125.3 kB 888.1 kB/s eta 0:00:00
     app4: Downloading itsdangerous-2.2.0-py3-none-any.whl (16 kB)
     app4: Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
-    app4:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 134.9/134.9 kB 2.5 MB/s eta 0:00:00
+    app4:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 134.9/134.9 kB 3.9 MB/s eta 0:00:00
     app4: Downloading markupsafe-3.0.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (22 kB)
     app4: Downloading werkzeug-3.1.9-py3-none-any.whl (228 kB)
-    app4:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 228.7/228.7 kB 2.2 MB/s eta 0:00:00
+    app4:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 228.7/228.7 kB 3.0 MB/s eta 0:00:00
     app4: Downloading packaging-26.3-py3-none-any.whl (129 kB)
-    app4:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 130.0/130.0 kB 2.2 MB/s eta 0:00:00
+    app4:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 130.0/130.0 kB 3.3 MB/s eta 0:00:00
     app4: Installing collected packages: psycopg2-binary, packaging, markupsafe, itsdangerous, click, blinker, werkzeug, jinja2, gunicorn, Flask
     app4: Successfully installed Flask-3.1.1 blinker-1.9.0 click-8.5.0 gunicorn-23.0.0 itsdangerous-2.2.0 jinja2-3.1.6 markupsafe-3.0.4 packaging-26.3 psycopg2-binary-2.9.10 werkzeug-3.1.9
     app4: Created symlink /etc/systemd/system/multi-user.target.wants/app.service → /etc/systemd/system/app.service.
@@ -1753,8 +1731,8 @@ Bringing machine 'lb1' up with 'virtualbox' provider...
     app4: No containers need to be restarted.
     app4: 
     app4: User sessions running outdated binaries:
-    app4:  vagrant @ session #3: sshd[1391]
-    app4:  vagrant @ user manager service: systemd[1005]
+    app4:  vagrant @ session #3: sshd[1392]
+    app4:  vagrant @ user manager service: systemd[999]
     app4: 
     app4: No VM guests are running outdated hypervisor (qemu) binaries on this host.
     app4: [node_exporter] OK sur app4 : port 9100
@@ -1764,7 +1742,7 @@ Bringing machine 'lb1' up with 'virtualbox' provider...
 (code retour : 0)
 $ vagrant provision lb1
 ==> lb1: Running provisioner: shell...
-    lb1: Running: C:/Users/user/AppData/Local/Temp/vagrant-shell20261021-3564-nclll5.sh
+    lb1: Running: C:/Users/user/AppData/Local/Temp/vagrant-shell20261024-16320-zgpu41.sh
     lb1: ===> Installation de HAProxy, Keepalived, psmisc et Ruby...
     lb1: ===> Génération de la configuration HAProxy...
     lb1: ===> Validation de la configuration HAProxy...
@@ -1781,26 +1759,11 @@ $ vagrant provision lb1
     lb1: [node_exporter] OK sur lb1 : port 9100
 (code retour : 0)
 $ vagrant provision lb2
-==> lb2: Running provisioner: shell...
-    lb2: Running: C:/Users/user/AppData/Local/Temp/vagrant-shell20261021-37524-pknsvl.sh
-    lb2: ===> Installation de HAProxy, Keepalived, psmisc et Ruby...
-    lb2: ===> Génération de la configuration HAProxy...
-    lb2: ===> Validation de la configuration HAProxy...
-    lb2: Configuration file is valid
-    lb2: ===> Configuration modifiée : rechargement de HAProxy...
-    lb2: ===> Configuration de Keepalived (VRRP)...
-    lb2: ===> Configuration Keepalived inchangée.
-    lb2: ===> Terminé : VIP = 192.168.63.5, rôle = BACKUP, interface = eth1
-==> lb2: Running provisioner: metriques-haproxy (shell)...
-    lb2: Running: script: metriques-haproxy
-    lb2: [lb-metrics] métriques exposées sur :8405/metrics
-==> lb2: Running provisioner: node_exporter (shell)...
-    lb2: Running: script: node_exporter
-    lb2: [node_exporter] OK sur lb2 : port 9100
+==> lb2: VM not created. Moving on...
 (code retour : 0)
 $ vagrant provision obs
 ==> obs: Running provisioner: shell...
-    obs: Running: C:/Users/user/AppData/Local/Temp/vagrant-shell20261021-32624-ejzxqf.sh
+    obs: Running: C:/Users/user/AppData/Local/Temp/vagrant-shell20261024-36868-ll18nz.sh
     obs: [node_exporter] OK sur obs : port 9100
     obs: [obs] Prometheus : http://192.168.63.41:9090   (Status > Targets)
     obs: [obs] Grafana    : http://192.168.63.41:3000   (admin / mot de passe du .env)
@@ -1838,35 +1801,33 @@ Document Path:          /resultat?matricule=MAT000001
 Document Length:        87 bytes
 
 Concurrency Level:      50
-Time taken for tests:   60.183 seconds
+Time taken for tests:   60.740 seconds
 Complete requests:      2000
-Failed requests:        628
-   (Connect: 0, Receive: 0, Length: 628, Exceptions: 0)
-Non-2xx responses:      628
-Total transferred:      438560 bytes
-HTML transferred:       186560 bytes
-Requests per second:    33.23 [#/sec] (mean)
-Time per request:       1504.572 [ms] (mean)
-Time per request:       30.091 [ms] (mean, across all concurrent requests)
-Transfer rate:          7.12 [Kbytes/sec] received
+Failed requests:        0
+Total transferred:      426000 bytes
+HTML transferred:       174000 bytes
+Requests per second:    32.93 [#/sec] (mean)
+Time per request:       1518.501 [ms] (mean)
+Time per request:       30.370 [ms] (mean, across all concurrent requests)
+Transfer rate:          6.85 [Kbytes/sec] received
 
 Connection Times (ms)
               min  mean[+/-sd] median   max
-Connect:        1   12  26.5      3     528
-Processing:     2 1461 1485.6   1082    7205
-Waiting:        0 1454 1488.6   1081    7203
-Total:          4 1473 1480.0   1084    7207
+Connect:        1    3   6.8      2      60
+Processing:    95 1498 1145.6   1010    4939
+Waiting:       35 1497 1145.5   1008    4938
+Total:         98 1502 1144.9   1013    4941
 
 Percentage of the requests served within a certain time (ms)
-  50%   1084
-  66%   1736
-  75%   2201
-  80%   2494
-  90%   3330
-  95%   4880
-  98%   5883
-  99%   6504
- 100%   7207 (longest request)
+  50%   1013
+  66%   1710
+  75%   2237
+  80%   2517
+  90%   3263
+  95%   4011
+  98%   4441
+  99%   4577
+ 100%   4941 (longest request)
 
 === N=4 -- mesure 2/3 ===
 $ ab -n 2000 -c 50 "http://192.168.63.5/resultat?matricule=MAT000001"
@@ -1896,35 +1857,33 @@ Document Path:          /resultat?matricule=MAT000001
 Document Length:        87 bytes
 
 Concurrency Level:      50
-Time taken for tests:   49.091 seconds
+Time taken for tests:   58.859 seconds
 Complete requests:      2000
-Failed requests:        875
-   (Connect: 0, Receive: 0, Length: 875, Exceptions: 0)
-Non-2xx responses:      875
-Total transferred:      443500 bytes
-HTML transferred:       191500 bytes
-Requests per second:    40.74 [#/sec] (mean)
-Time per request:       1227.270 [ms] (mean)
-Time per request:       24.545 [ms] (mean, across all concurrent requests)
-Transfer rate:          8.82 [Kbytes/sec] received
+Failed requests:        0
+Total transferred:      426000 bytes
+HTML transferred:       174000 bytes
+Requests per second:    33.98 [#/sec] (mean)
+Time per request:       1471.463 [ms] (mean)
+Time per request:       29.429 [ms] (mean, across all concurrent requests)
+Transfer rate:          7.07 [Kbytes/sec] received
 
 Connection Times (ms)
               min  mean[+/-sd] median   max
-Connect:        1   11  15.2      4      82
-Processing:     2 1179 1386.2    599    7408
-Waiting:        0 1173 1388.5    597    7407
-Total:          3 1189 1381.9    601    7411
+Connect:        1    3   5.4      2      47
+Processing:    76 1452 776.6   1323    3817
+Waiting:       29 1452 776.6   1321    3815
+Total:         78 1455 776.1   1324    3823
 
 Percentage of the requests served within a certain time (ms)
-  50%    601
-  66%   1471
-  75%   2021
-  80%   2353
-  90%   3124
-  95%   3861
-  98%   5083
-  99%   6028
- 100%   7411 (longest request)
+  50%   1324
+  66%   1642
+  75%   1936
+  80%   2137
+  90%   2652
+  95%   2973
+  98%   3262
+  99%   3435
+ 100%   3823 (longest request)
 
 === N=4 -- mesure 3/3 ===
 $ ab -n 2000 -c 50 "http://192.168.63.5/resultat?matricule=MAT000001"
@@ -1954,56 +1913,57 @@ Document Path:          /resultat?matricule=MAT000001
 Document Length:        87 bytes
 
 Concurrency Level:      50
-Time taken for tests:   77.489 seconds
+Time taken for tests:   59.585 seconds
 Complete requests:      2000
-Failed requests:        149
-   (Connect: 0, Receive: 0, Length: 149, Exceptions: 0)
-Non-2xx responses:      149
-Total transferred:      428980 bytes
-HTML transferred:       176980 bytes
-Requests per second:    25.81 [#/sec] (mean)
-Time per request:       1937.222 [ms] (mean)
-Time per request:       38.744 [ms] (mean, across all concurrent requests)
-Transfer rate:          5.41 [Kbytes/sec] received
+Failed requests:        0
+Total transferred:      426000 bytes
+HTML transferred:       174000 bytes
+Requests per second:    33.57 [#/sec] (mean)
+Time per request:       1489.637 [ms] (mean)
+Time per request:       29.793 [ms] (mean, across all concurrent requests)
+Transfer rate:          6.98 [Kbytes/sec] received
 
 Connection Times (ms)
               min  mean[+/-sd] median   max
-Connect:        1    4   8.2      2      85
-Processing:     1 1903 1428.0   1739   10535
-Waiting:        0 1901 1428.1   1738   10535
-Total:          2 1907 1427.1   1740   10539
+Connect:        1    3   5.9      2      50
+Processing:    77 1468 982.4   1163    4585
+Waiting:       29 1467 982.5   1163    4585
+Total:         78 1471 981.7   1167    4587
 
 Percentage of the requests served within a certain time (ms)
-  50%   1740
-  66%   2328
-  75%   2631
-  80%   2831
-  90%   3479
-  95%   4139
-  98%   5929
-  99%   6938
- 100%  10539 (longest request)
+  50%   1167
+  66%   1684
+  75%   2073
+  80%   2288
+  90%   3041
+  95%   3556
+  98%   3899
+  99%   4038
+ 100%   4587 (longest request)
 
-Fenêtre à capturer dans Grafana pour N=4 : de 17:35:35 à 17:39:19
+Fenêtre à capturer dans Grafana pour N=4 : de 16:56:44 à 17:00:21
 
 ================ SYNTHÈSE V3 ================
 N    mesure  req/s      moy(ms)      p50      p95      p99      échecs  non-2xx 
-2    1       67.60      739.686      203      2921     4545     1353     1353    
-2    2       45.25      1104.889     253      3602     5305     1051     1051    
-2    3       50.49      990.259      294      3908     5591     1158     1158    
-4    1       33.23      1504.572     1084     4880     6504     628      628     
-4    2       40.74      1227.270     601      3861     6028     875      875     
-4    3       25.81      1937.222     1740     4139     6938     149      149     
+2    1       37.37      1337.845     1287     2176     2420     0        0       
+2    2       38.64      1293.980     1232     2180     2949     0        0       
+2    3       38.62      1294.651     1282     2109     2723     0        0       
+4    1       32.93      1518.501     1013     4011     4577     0        0       
+4    2       33.98      1471.463     1324     2973     3435     0        0       
+4    3       33.57      1489.637     1167     3556     4038     0        0       
 
 Médiane du débit (req/s) par configuration :
-  N=2 : 50.49 req/s
-  N=4 : 33.23 req/s
+  N=2 : 38.62 req/s
+  N=4 : 33.57 req/s
 
 Lecture : les VM partagent le processeur d'un seul poste (et ab aussi s'il tourne sur l'hôte).
 Un débit qui n'augmente pas, voire baisse, avec N est un résultat à commenter, pas un échec.
-[ECHEC]   Aucune requête en échec / non-2xx pendant les mesures
-[ECHEC]   Le débit médian augmente entre N=2 et N=4 (50.49 -> 33.23 req/s) [indicatif, voir la lecture ci-dessus]
+[ OK ]    Aucune requête en échec / non-2xx pendant les mesures
+[ INFO ]  Débit médian N=2 -> N=4 : 38.62 -> 33.57 req/s (-13.1 %)
+          Le débit n'augmente pas avec N : c'est une observation à commenter, pas une erreur (le cahier des charges demande de MESURER).
+          Pistes à vérifier dans Grafana sur la fenêtre de chaque N : CPU de bdd1 (base commune à tous les serveurs),
+          CPU des VM, et mémoire disponible du PC (toutes les VM partagent le même processeur).
 
 ------------------------------------------------------------
-RÉSULTAT GLOBAL : ÉCHEC (2 échec(s) sur 6 contrôle(s))
-Rapport enregistré : /c/Users/user/Desktop/GOUPE8_RESULTATS-BF---Vagrant/resultats/V3_montee_en_charge_20261021_172207.txt
+RÉSULTAT GLOBAL : SUCCÈS (5 contrôle(s) réussi(s))
+Rapport enregistré : /c/Users/user/Desktop/GOUPE8_RESULTATS-BF---Vagrant/resultats/V3_montee_en_charge_20261024_164222.txt

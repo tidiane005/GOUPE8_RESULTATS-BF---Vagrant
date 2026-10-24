@@ -1,5 +1,5 @@
 === Scénario : V2_panne_app ===
-Date            : 2026-10-21 17:06:56 +0000
+Date            : 2026-10-24 13:12:03 +0000
 Poste           : MINGW64_NT-10.0-26200 3.6.10-5a1665c8.x86_64
 Groupe / réseau : 8 / 192.168.63.0/24
 Serveurs app    : N=2
@@ -9,25 +9,38 @@ URL testée      : http://192.168.63.5
 [ OK ]    app1 est démarré avant le test
 
 Charge : une requête toutes les 0,1 s sur http://192.168.63.5/info pendant tout le test.
-[t0 = 17:07:06] arrêt de app1 pendant la charge
+[13:12:18] arrêt de app1 pendant la charge
 $ vagrant halt --force app1
 ==> app1: Forcing shutdown of VM...
 (code retour : 0)
+Arrêt effectif de app1 constaté 15.15 s après le lancement de la commande.
 
-===== Résultats (t0 = début de la commande d'arrêt) =====
-Requêtes envoyées par la sonde       : 187
-Requêtes en erreur (code non 2xx)    : 2 (1.07 %)
+===== Résultats =====
+--- Mesure A : t0 = lancement de la commande d'arrêt (inclut le délai propre à Vagrant/VirtualBox) ---
+Requêtes envoyées par la sonde       : 101
+Requêtes en erreur (code non 2xx)    : 0 (0.00 %)
   dont avant l événement             : 0
-Première / dernière erreur           : t0+6.83 s / t0+9.11 s
-Période dégradée (1re -> dernière err.) : 2.28 s
-Plus longue série d erreurs consécutives : 4.66 s
-Erreurs au-delà de 5 s après t0      : 2
-Hôtes servis AVANT l événement       : app1=9 app2=8
-Hôtes servis APRÈS l événement       : -=2 app1=9 app2=159
+Aucune erreur observée après l événement
+Plus longue série d erreurs consécutives : 0.00 s
+Erreurs au-delà de 5 s après t0      : 0
+Hôtes servis AVANT l événement       : app1=6 app2=5
+Hôtes servis APRÈS l événement       : app1=11 app2=79
 
-[ECHEC]   Aucune erreur au-delà de 5 s après l'arrêt (constaté : 2)
-[ OK ]    Le service répond toujours après l'arrêt (154 réponses 2xx)
-[ECHEC]   app1 n'est plus sollicité après 5 s (2 requêtes)
+--- Mesure B (référence des contrôles) : t0 = arrêt effectif de app1, observé en direct ---
+Requêtes envoyées par la sonde       : 101
+Requêtes en erreur (code non 2xx)    : 0 (0.00 %)
+  dont avant l événement             : 0
+Aucune erreur observée après l événement
+Plus longue série d erreurs consécutives : 0.00 s
+Erreurs au-delà de 5 s après t0      : 0
+Hôtes servis AVANT l événement       : app1=17 app2=17
+Hôtes servis APRÈS l événement       : app2=67
+
+Information (mesure A) : erreurs plus de 5 s après le lancement de la commande : 0
+
+[ OK ]    Aucune erreur au-delà de 5 s après l'arrêt effectif (mesure B, constaté : 0)
+[ OK ]    Le service répond toujours après l'arrêt (57 réponses 2xx)
+[ OK ]    app1 n'est plus sollicité 5 s après son arrêt effectif (0 requêtes)
 
 ===== Remise en service de app1 =====
 $ vagrant up app1
@@ -68,5 +81,5 @@ Bringing machine 'app1' up with 'virtualbox' provider...
 [ OK ]    app1 est de nouveau intégré à la répartition
 
 ------------------------------------------------------------
-RÉSULTAT GLOBAL : ÉCHEC (2 échec(s) sur 6 contrôle(s))
-Rapport enregistré : /c/Users/user/Desktop/GOUPE8_RESULTATS-BF---Vagrant/resultats/V2_panne_app_20261021_170656.txt
+RÉSULTAT GLOBAL : SUCCÈS (6 contrôle(s) réussi(s))
+Rapport enregistré : /c/Users/user/Desktop/GOUPE8_RESULTATS-BF---Vagrant/resultats/V2_panne_app_20261024_131203.txt

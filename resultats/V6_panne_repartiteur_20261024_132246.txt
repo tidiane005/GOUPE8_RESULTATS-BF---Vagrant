@@ -1,5 +1,5 @@
 === Scénario : V6_panne_repartiteur ===
-Date            : 2026-10-21 17:13:36 +0000
+Date            : 2026-10-24 13:22:46 +0000
 Poste           : MINGW64_NT-10.0-26200 3.6.10-5a1665c8.x86_64
 Groupe / réseau : 8 / 192.168.63.0/24
 Serveurs app    : N=2
@@ -7,27 +7,40 @@ Serveurs app    : N=2
 Adresse testée (IP virtuelle) : http://192.168.63.5/info
 [ OK ]    lb2 est démarré
 [ OK ]    lb1 est démarré
-[t0 = 17:13:51] arrêt de lb1
+[13:23:03] arrêt de lb1
 $ vagrant halt --force lb1
 ==> lb1: Forcing shutdown of VM...
 (code retour : 0)
+Arrêt effectif de lb1 constaté 10.16 s après le lancement de la commande.
 
-===== Résultats (t0 = début de la commande d'arrêt) =====
-Requêtes envoyées par la sonde       : 185
-Requêtes en erreur (code non 2xx)    : 1 (0.54 %)
+===== Résultats =====
+--- Mesure A : t0 = lancement de la commande d'arrêt (inclut le délai propre à Vagrant/VirtualBox) ---
+Requêtes envoyées par la sonde       : 82
+Requêtes en erreur (code non 2xx)    : 1 (1.22 %)
   dont avant l événement             : 0
-Première / dernière erreur           : t0+5.45 s / t0+5.45 s
+Première / dernière erreur           : t0+9.89 s / t0+9.89 s
 Période dégradée (1re -> dernière err.) : 0.00 s
 Plus longue série d erreurs consécutives : 2.29 s
 Erreurs au-delà de 5 s après t0      : 1
-Hôtes servis AVANT l événement       : app1=9 app2=8
-Hôtes servis APRÈS l événement       : -=1 app1=83 app2=84
+Hôtes servis AVANT l événement       : app1=8 app2=7
+Hôtes servis APRÈS l événement       : -=1 app1=43 app2=23
+
+--- Mesure B (référence des contrôles) : t0 = arrêt effectif de lb1, observé en direct ---
+Requêtes envoyées par la sonde       : 82
+Requêtes en erreur (code non 2xx)    : 1 (1.22 %)
+  dont avant l événement             : 1
+Aucune erreur observée après l événement
+Plus longue série d erreurs consécutives : 2.29 s
+Erreurs au-delà de 5 s après t0      : 0
+Hôtes servis AVANT l événement       : -=1 app1=27 app2=7
+Hôtes servis APRÈS l événement       : app1=24 app2=23
+Information (mesure A) : erreurs plus de 5 s après le lancement de la commande : 1
 
 Temps de reprise après bascule VRRP (plus longue interruption) : 2.29 s
 Adresse VIP 192.168.63.5 sur lb2 : 1   (attendu : 1)
 
-[ OK ]    Le service répond toujours à la même adresse (152 réponses 2xx après 5 s)
-[ECHEC]   Reprise en moins de 5 s : aucune erreur au-delà de 5 s (1)
+[ OK ]    Le service répond toujours à la même adresse (40 réponses 2xx après 5 s)
+[ OK ]    Reprise en moins de 5 s après l'arrêt effectif : aucune erreur au-delà de 5 s (mesure B, 0)
 [ OK ]    lb2 porte l'IP virtuelle
 
 ===== Remise en service de lb1 =====
@@ -49,7 +62,6 @@ Bringing machine 'lb1' up with 'virtualbox' provider...
     lb1: SSH address: 127.0.0.1:2203
     lb1: SSH username: vagrant
     lb1: SSH auth method: private key
-    lb1: Warning: Connection reset. Retrying...
 ==> lb1: Machine booted and ready!
 ==> lb1: Checking for guest additions in VM...
     lb1: The guest additions on this VM do not match the installed version of
@@ -71,5 +83,5 @@ Bringing machine 'lb1' up with 'virtualbox' provider...
 [ OK ]    Service toujours joignable après le retour de lb1
 
 ------------------------------------------------------------
-RÉSULTAT GLOBAL : ÉCHEC (1 échec(s) sur 6 contrôle(s))
-Rapport enregistré : /c/Users/user/Desktop/GOUPE8_RESULTATS-BF---Vagrant/resultats/V6_panne_repartiteur_20261021_171336.txt
+RÉSULTAT GLOBAL : SUCCÈS (6 contrôle(s) réussi(s))
+Rapport enregistré : /c/Users/user/Desktop/GOUPE8_RESULTATS-BF---Vagrant/resultats/V6_panne_repartiteur_20261024_132246.txt
