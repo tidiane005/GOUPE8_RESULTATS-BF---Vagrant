@@ -43,9 +43,24 @@ echo "Commande par mesure : ab -n $REQUETES -c $CONC \"$AB_BASE$ROUTE\""
 echo "Mesures par configuration : $RUNS (+ 1 échauffement non compté)"
 echo
 
+serveurs_vus() {   # nombre de serveurs applicatifs distincts qui répondent via le répartiteur
+  for i in $(seq 1 $(($1 * 4))); do hote_de "$(curl -s -m 2 "$BASE_URL/info")"; done | sort -u | grep -c .
+}
+
 for N in $LISTE_N; do
   if [ "${SKIP_SCALE:-0}" != 1 ]; then
-    mettre_a_n "$N"; check "Plateforme prête avec N=$N" "$?"
+    mettre_a_n "$N"; pret=$?; check "Plateforme prête avec N=$N" "$pret"
+    if [ "$pret" -ne 0 ]; then echo "N=$N ignoré : la plateforme n'est pas prête, aucune mesure n'est faite."; continue; fi
+  else
+    # SKIP_SCALE : on ne touche pas aux VM ; le N annoncé doit correspondre à ce qui tourne réellement
+    vus="$(serveurs_vus "$N")"
+    check "SKIP_SCALE : $vus serveur(s) applicatif(s) répondent, $N annoncé (NB_APP)" "$([ "$vus" -eq "$N" ]; echo $?)"
+    if [ "$vus" -ne "$N" ]; then
+      echo "ERREUR : NB_APP=$N dans ce terminal, mais $vus serveur(s) répondent. Aucune mesure n'est faite."
+      echo "  -> soit : export NB_APP=$vus   (mesurer ce qui tourne)"
+      echo "  -> soit : retirer SKIP_SCALE=1 (le script démarre alors les serveurs manquants)"
+      end_summary; exit 2
+    fi
   fi
   code="$(http_code "$BASE_URL$ROUTE")"
   check "La route $ROUTE répond 200 (reçu : $code) -- sinon préciser MATRICULE=…" "$([ "$code" = 200 ]; echo $?)"
@@ -93,8 +108,16 @@ check "Aucune requête en échec / non-2xx pendant les mesures" "$([ "$erreurs" 
 nb="$(awk '{ print $1 }' "$RESUME.med" | wc -l)"
 if [ "$nb" -ge 2 ]; then
   premier="$(head -1 "$RESUME.med" | awk '{ print $2 }')"; dernier="$(tail -1 "$RESUME.med" | awk '{ print $2 }')"
-  check "Le débit médian augmente entre N=$(head -1 "$RESUME.med" | awk '{print $1}') et N=$(tail -1 "$RESUME.med" | awk '{print $1}') (${premier} -> ${dernier} req/s) [indicatif, voir la lecture ci-dessus]" \
-    "$(awk -v a="$premier" -v b="$dernier" 'BEGIN { exit !(b > a) }'; echo $?)"
+  n1="$(head -1 "$RESUME.med" | awk '{ print $1 }')"; n2="$(tail -1 "$RESUME.med" | awk '{ print $1 }')"
+  variation="$(awk -v a="$premier" -v b="$dernier" 'BEGIN { if (a > 0) printf "%+.1f", (b - a) / a * 100; else printf "NA" }')"
+  echo "[ INFO ]  Débit médian N=$n1 -> N=$n2 : ${premier} -> ${dernier} req/s (${variation} %)"
+  if awk -v a="$premier" -v b="$dernier" 'BEGIN { exit !(b > a) }'; then
+    echo "          Le débit augmente avec N."
+  else
+    echo "          Le débit n'augmente pas avec N : c'est une observation à commenter, pas une erreur (le cahier des charges demande de MESURER)."
+    echo "          Pistes à vérifier dans Grafana sur la fenêtre de chaque N : CPU de bdd1 (base commune à tous les serveurs),"
+    echo "          CPU des VM, et mémoire disponible du PC (toutes les VM partagent le même processeur)."
+  fi
 fi
 rm -f "$RESUME" "$RESUME.med"
 end_summary; exit $?

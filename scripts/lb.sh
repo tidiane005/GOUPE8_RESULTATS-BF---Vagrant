@@ -48,8 +48,9 @@ defaults
     option  httplog
     option  dontlognull
     retries 2
-    option  redispatch
-    timeout connect 2000ms
+    option  redispatch 1
+    timeout connect 1000ms
+    timeout check   3000ms
     timeout client  50000ms
     timeout server  50000ms
 
@@ -70,7 +71,7 @@ backend http_back
 HAPROXY
 
 apps.each do |a|
-  puts "    server #{champ.(a, :nom)} #{champ.(a, :ip)}:3000 check inter 1000ms fall 2 rise 2"
+  puts "    server #{champ.(a, :nom)} #{champ.(a, :ip)}:3000 check inter 1000ms fall 3 rise 2"
 end
 RUBY_EOF
 

@@ -3,6 +3,7 @@
 # Le service doit rester disponible ; plus aucune erreur au-delà de 5 s.
 # Variables : CIBLE (défaut app1), PRE_DURATION (5 s), POST_DURATION (30 s), HALT_FORCE (1)
 source "$(dirname "$0")/lib.sh"
+source "$(dirname "$0")/lib_mesure.sh"
 start_report V2_panne_app
 detect_base_url
 
@@ -10,6 +11,8 @@ CIBLE="${CIBLE:-app1}"
 PRE="${PRE_DURATION:-5}"
 POST="${POST_DURATION:-30}"
 PROBE="$(mktemp)"
+CIBLE_IP="$RESEAU.$((20 + ${CIBLE#app}))"                       # adresse directe du serveur arrêté
+CIBLE_URL="${CIBLE_URL:-http://$CIBLE_IP:$APP_PORT/info}"       # sonde directe, sans répartiteur
 
 check "Au moins 2 serveurs applicatifs déclarés (N=$NB_APP)" "$([ "$NB_APP" -ge 2 ]; echo $?)"
 vm_running "$CIBLE"
@@ -20,23 +23,29 @@ echo "Charge : une requête toutes les 0,1 s sur $BASE_URL/info pendant tout le 
 probe_start "$BASE_URL/info" "$PROBE" 0.1
 sleep "$PRE"
 
-T0="$(now)"
-echo "[t0 = $(date +%T)] arrêt de $CIBLE pendant la charge"
-vm_halt "$CIBLE"
-while elapsed_since "$T0" "$POST"; do sleep 1; done
+echo "[$(date +%T)] arrêt de $CIBLE pendant la charge"
+halt_mesure "$CIBLE" "$CIBLE_URL"
+echo "Arrêt effectif de $CIBLE constaté $(dur "$T0" "$T_DOWN") s après le lancement de la commande."
+while elapsed_since "$T_DOWN" "$POST"; do sleep 1; done
 probe_stop
 
 echo
-echo "===== Résultats (t0 = début de la commande d'arrêt) ====="
+echo "===== Résultats ====="
+echo "--- Mesure A : t0 = lancement de la commande d'arrêt (inclut le délai propre à Vagrant/VirtualBox) ---"
 analyse_probe "$PROBE" "$T0" 5
-LIMITE="$(add "$T0" 5)"
+echo
+echo "--- Mesure B (référence des contrôles) : t0 = arrêt effectif de $CIBLE, observé en direct ---"
+analyse_probe "$PROBE" "$T_DOWN" 5
+LIMITE="$(add "$T_DOWN" 5)"
+echo
+echo "Information (mesure A) : erreurs plus de 5 s après le lancement de la commande : $(probe_errors_after "$PROBE" "$(add "$T0" 5)")"
 tard="$(probe_errors_after "$PROBE" "$LIMITE")"
 succes="$(probe_success_after "$PROBE" "$LIMITE")"
 cible_apres="$(probe_host_after "$PROBE" "$LIMITE" "$CIBLE")"
 echo
-check "Aucune erreur au-delà de 5 s après l'arrêt (constaté : $tard)" "$([ "$tard" -eq 0 ]; echo $?)"
+check "Aucune erreur au-delà de 5 s après l'arrêt effectif (mesure B, constaté : $tard)" "$([ "$tard" -eq 0 ]; echo $?)"
 check "Le service répond toujours après l'arrêt ($succes réponses 2xx)" "$([ "$succes" -gt 0 ]; echo $?)"
-check "$CIBLE n'est plus sollicité après 5 s ($cible_apres requêtes)" "$([ "$cible_apres" -eq 0 ]; echo $?)"
+check "$CIBLE n'est plus sollicité 5 s après son arrêt effectif ($cible_apres requêtes)" "$([ "$cible_apres" -eq 0 ]; echo $?)"
 
 echo
 echo "===== Remise en service de $CIBLE ====="
