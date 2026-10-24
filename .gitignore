@@ -1,0 +1,14 @@
+# Secrets et environnement
+.env
+.venv/
+
+# Vagrant et éditeur
+.vagrant/
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Fichier engendré par le Vagrantfile
+config/noeuds.yml

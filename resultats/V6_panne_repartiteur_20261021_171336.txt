@@ -1,0 +1,75 @@
+=== Scénario : V6_panne_repartiteur ===
+Date            : 2026-10-21 17:13:36 +0000
+Poste           : MINGW64_NT-10.0-26200 3.6.10-5a1665c8.x86_64
+Groupe / réseau : 8 / 192.168.63.0/24
+Serveurs app    : N=2
+
+Adresse testée (IP virtuelle) : http://192.168.63.5/info
+[ OK ]    lb2 est démarré
+[ OK ]    lb1 est démarré
+[t0 = 17:13:51] arrêt de lb1
+$ vagrant halt --force lb1
+==> lb1: Forcing shutdown of VM...
+(code retour : 0)
+
+===== Résultats (t0 = début de la commande d'arrêt) =====
+Requêtes envoyées par la sonde       : 185
+Requêtes en erreur (code non 2xx)    : 1 (0.54 %)
+  dont avant l événement             : 0
+Première / dernière erreur           : t0+5.45 s / t0+5.45 s
+Période dégradée (1re -> dernière err.) : 0.00 s
+Plus longue série d erreurs consécutives : 2.29 s
+Erreurs au-delà de 5 s après t0      : 1
+Hôtes servis AVANT l événement       : app1=9 app2=8
+Hôtes servis APRÈS l événement       : -=1 app1=83 app2=84
+
+Temps de reprise après bascule VRRP (plus longue interruption) : 2.29 s
+Adresse VIP 192.168.63.5 sur lb2 : 1   (attendu : 1)
+
+[ OK ]    Le service répond toujours à la même adresse (152 réponses 2xx après 5 s)
+[ECHEC]   Reprise en moins de 5 s : aucune erreur au-delà de 5 s (1)
+[ OK ]    lb2 porte l'IP virtuelle
+
+===== Remise en service de lb1 =====
+$ vagrant up lb1
+Bringing machine 'lb1' up with 'virtualbox' provider...
+==> lb1: Checking if box 'bento/ubuntu-24.04' version '202508.03.0' is up to date...
+==> lb1: Clearing any previously set forwarded ports...
+==> lb1: Fixed port collision for 22 => 2222. Now on port 2203.
+==> lb1: Clearing any previously set network interfaces...
+==> lb1: Preparing network interfaces based on configuration...
+    lb1: Adapter 1: nat
+    lb1: Adapter 2: hostonly
+==> lb1: Forwarding ports...
+    lb1: 80 (guest) => 8080 (host) (adapter 1)
+    lb1: 22 (guest) => 2203 (host) (adapter 1)
+==> lb1: Running 'pre-boot' VM customizations...
+==> lb1: Booting VM...
+==> lb1: Waiting for machine to boot. This may take a few minutes...
+    lb1: SSH address: 127.0.0.1:2203
+    lb1: SSH username: vagrant
+    lb1: SSH auth method: private key
+    lb1: Warning: Connection reset. Retrying...
+==> lb1: Machine booted and ready!
+==> lb1: Checking for guest additions in VM...
+    lb1: The guest additions on this VM do not match the installed version of
+    lb1: VirtualBox! In most cases this is fine, but in rare cases it can
+    lb1: prevent things such as shared folders from working properly. If you see
+    lb1: shared folder errors, please make sure the guest additions within the
+    lb1: virtual machine match the version of VirtualBox you have installed on
+    lb1: your host and reload your VM.
+    lb1: 
+    lb1: Guest Additions Version: 7.1.12
+    lb1: VirtualBox Version: 7.2
+==> lb1: Setting hostname...
+==> lb1: Configuring and enabling network interfaces...
+==> lb1: Mounting shared folders...
+    lb1: C:/Users/user/Desktop/GOUPE8_RESULTATS-BF---Vagrant => /vagrant
+==> lb1: Machine already provisioned. Run `vagrant provision` or use the `--provision`
+==> lb1: flag to force provisioning. Provisioners marked to run always will still run.
+(code retour : 0)
+[ OK ]    Service toujours joignable après le retour de lb1
+
+------------------------------------------------------------
+RÉSULTAT GLOBAL : ÉCHEC (1 échec(s) sur 6 contrôle(s))
+Rapport enregistré : /c/Users/user/Desktop/GOUPE8_RESULTATS-BF---Vagrant/resultats/V6_panne_repartiteur_20261021_171336.txt
