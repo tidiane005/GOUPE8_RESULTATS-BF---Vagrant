@@ -1,5 +1,5 @@
 === Scénario : V2_panne_app ===
-Date            : 2026-10-24 13:12:03 +0000
+Date            : 2026-10-25 00:22:43 +0000
 Poste           : MINGW64_NT-10.0-26200 3.6.10-5a1665c8.x86_64
 Groupe / réseau : 8 / 192.168.63.0/24
 Serveurs app    : N=2
@@ -9,37 +9,37 @@ URL testée      : http://192.168.63.5
 [ OK ]    app1 est démarré avant le test
 
 Charge : une requête toutes les 0,1 s sur http://192.168.63.5/info pendant tout le test.
-[13:12:18] arrêt de app1 pendant la charge
+[00:22:54] arrêt de app1 pendant la charge
 $ vagrant halt --force app1
 ==> app1: Forcing shutdown of VM...
 (code retour : 0)
-Arrêt effectif de app1 constaté 15.15 s après le lancement de la commande.
+Arrêt effectif de app1 constaté 6.77 s après le lancement de la commande.
 
 ===== Résultats =====
 --- Mesure A : t0 = lancement de la commande d'arrêt (inclut le délai propre à Vagrant/VirtualBox) ---
-Requêtes envoyées par la sonde       : 101
+Requêtes envoyées par la sonde       : 105
 Requêtes en erreur (code non 2xx)    : 0 (0.00 %)
   dont avant l événement             : 0
 Aucune erreur observée après l événement
 Plus longue série d erreurs consécutives : 0.00 s
 Erreurs au-delà de 5 s après t0      : 0
-Hôtes servis AVANT l événement       : app1=6 app2=5
-Hôtes servis APRÈS l événement       : app1=11 app2=79
+Hôtes servis AVANT l événement       : app1=8 app2=7
+Hôtes servis APRÈS l événement       : app1=8 app2=82
 
 --- Mesure B (référence des contrôles) : t0 = arrêt effectif de app1, observé en direct ---
-Requêtes envoyées par la sonde       : 101
+Requêtes envoyées par la sonde       : 105
 Requêtes en erreur (code non 2xx)    : 0 (0.00 %)
   dont avant l événement             : 0
 Aucune erreur observée après l événement
 Plus longue série d erreurs consécutives : 0.00 s
 Erreurs au-delà de 5 s après t0      : 0
-Hôtes servis AVANT l événement       : app1=17 app2=17
-Hôtes servis APRÈS l événement       : app2=67
+Hôtes servis AVANT l événement       : app1=16 app2=15
+Hôtes servis APRÈS l événement       : app2=74
 
 Information (mesure A) : erreurs plus de 5 s après le lancement de la commande : 0
 
 [ OK ]    Aucune erreur au-delà de 5 s après l'arrêt effectif (mesure B, constaté : 0)
-[ OK ]    Le service répond toujours après l'arrêt (57 réponses 2xx)
+[ OK ]    Le service répond toujours après l'arrêt (69 réponses 2xx)
 [ OK ]    app1 n'est plus sollicité 5 s après son arrêt effectif (0 requêtes)
 
 ===== Remise en service de app1 =====
@@ -82,4 +82,4 @@ Bringing machine 'app1' up with 'virtualbox' provider...
 
 ------------------------------------------------------------
 RÉSULTAT GLOBAL : SUCCÈS (6 contrôle(s) réussi(s))
-Rapport enregistré : /c/Users/user/Desktop/GOUPE8_RESULTATS-BF---Vagrant/resultats/V2_panne_app_20261024_131203.txt
+Rapport enregistré : /c/Users/user/Desktop/GOUPE8_RESULTATS-BF---Vagrant/resultats/V2_panne_app_20261025_002243.txt
