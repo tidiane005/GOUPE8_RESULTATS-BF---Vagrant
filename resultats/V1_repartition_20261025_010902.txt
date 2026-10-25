@@ -1,0 +1,44 @@
+=== Scénario : V1_repartition ===
+Date            : 2026-10-25 01:09:02 +0000
+Poste           : MINGW64_NT-10.0-26200 3.6.10-5a1665c8.x86_64
+Groupe / réseau : 8 / 192.168.63.0/24
+Serveurs app    : N=2
+
+URL testée      : http://192.168.63.5
+Commande        : for i in $(seq 1 20); do curl -s http://192.168.63.5/info; done
+
+  1  {"serveur":"app1"}                       -> app1
+  2  {"serveur":"app2"}                       -> app2
+  3  {"serveur":"app1"}                       -> app1
+  4  {"serveur":"app2"}                       -> app2
+  5  {"serveur":"app1"}                       -> app1
+  6  {"serveur":"app2"}                       -> app2
+  7  {"serveur":"app1"}                       -> app1
+  8  {"serveur":"app2"}                       -> app2
+  9  {"serveur":"app1"}                       -> app1
+ 10  {"serveur":"app2"}                       -> app2
+ 11  {"serveur":"app1"}                       -> app1
+ 12  {"serveur":"app2"}                       -> app2
+ 13  {"serveur":"app1"}                       -> app1
+ 14  {"serveur":"app2"}                       -> app2
+ 15  {"serveur":"app1"}                       -> app1
+ 16  {"serveur":"app2"}                       -> app2
+ 17  {"serveur":"app1"}                       -> app1
+ 18  {"serveur":"app2"}                       -> app2
+ 19  {"serveur":"app1"}                       -> app1
+ 20  {"serveur":"app2"}                       -> app2
+
+Répartition mesurée (attendu : 2 serveurs applicatifs) :
+  app1   :  10 requêtes (50.0 %)
+  app2   :  10 requêtes (50.0 %)
+  erreurs : 0
+
+Écart entre le serveur le plus et le moins sollicité : 0.0 % (seuil : < 20 %)
+
+[ OK ]    Les 2 serveurs applicatifs ont répondu (vus : 2)
+[ OK ]    Écart de répartition < 20 %
+[ OK ]    Aucune requête en erreur
+
+------------------------------------------------------------
+RÉSULTAT GLOBAL : SUCCÈS (3 contrôle(s) réussi(s))
+Rapport enregistré : /c/Users/user/Desktop/GOUPE8_RESULTATS-BF---Vagrant/resultats/V1_repartition_20261025_010902.txt
