@@ -7,7 +7,7 @@ Responsable : ingénieur données. Fichiers concernés : `bascule.ps1`,
 
 - `bdd1` : primaire PostgreSQL 16 (lecture et écriture), `192.168.63.31`.
 - `bdd2` : réplique en flux asynchrone de `bdd1`, en lecture seule, `192.168.63.32`.
-- Les serveurs applicatifs lisent `DB_HOST` dans `/opt/app/.env`.
+- Les serveurs applicatifs lisent `DB_HOST` dans `/etc/resultats-bf/app.env`.
 
 ## Procédure automatique (depuis le dossier du projet, sous PowerShell)
 
@@ -20,7 +20,8 @@ Responsable : ingénieur données. Fichiers concernés : `bascule.ps1`,
    Le script : (1) promeut `bdd2` avec `pg_promote()` ; (2) écrit puis supprime une ligne
    de test pour prouver que `bdd2` accepte les écritures ; (3) compte les lignes ;
    (4) repointe `DB_HOST` vers `bdd2` sur chaque serveur applicatif **démarré** et
-   redémarre le service. Chaque étape est chronométrée.
+   redémarre le service `app.service` (fichier `/etc/resultats-bf/app.env`) ; (5) attend que le
+   répartiteur réponde de nouveau 200 sur `/sante` et relit un résultat. Chaque étape est chronométrée.
 
 2. Quand `bdd1` est réparée, la remettre en réplique de `bdd2` :
 
@@ -41,8 +42,8 @@ Responsable : ingénieur données. Fichiers concernés : `bascule.ps1`,
 sudo -u postgres psql -tAc "SELECT pg_promote(wait => true, wait_seconds => 30);"
 sudo -u postgres psql -tAc "SELECT pg_is_in_recovery();"     # f = primaire
 # sur chaque app : repointage
-sudo sed -i 's/^DB_HOST=.*/DB_HOST=192.168.63.32/' /opt/app/.env
-sudo systemctl restart resultats-app
+sudo sed -i 's/^DB_HOST=.*/DB_HOST=192.168.63.32/' /etc/resultats-bf/app.env
+sudo systemctl restart app.service
 ```
 
 ## Mesures (deux essais, PC de développement, VirtualBox)
@@ -60,7 +61,22 @@ La base est prête à écrire environ une seconde après l'ordre de promotion. L
 temps vient des appels `vagrant ssh` (environ 10 à 15 s chacun sous Windows) et du
 démarrage de la machine virtuelle, pas de PostgreSQL. Ces durées dépendent de la charge
 du PC (la réintégration varie du simple au double entre les deux essais) : ce sont des
-ordres de grandeur, pas des garanties. Mesures faites sans serveur applicatif démarré.
+ordres de grandeur, pas des garanties.
+
+### Essai 3 : avec les serveurs applicatifs (app1, app2) et le répartiteur (lb1) démarrés
+
+| Étape | Durée |
+|---|---|
+| `pg_promote()` seul | 0,41 s |
+| Panne simulée -> `bdd2` primaire, écriture vérifiée | 52,4 s |
+| Panne simulée -> service rétabli via le répartiteur (`/sante` = 200) | 52,1 s |
+| Procédure complète (avec les deux repointages) | 69,0 s |
+
+Après la bascule, `/resultat?matricule=MAT000001` renvoie les mêmes données qu'avant.
+Le chronomètre démarre une fois `bdd1` éteinte : il ne compte pas le temps qu'un humain met
+à constater la panne. Le service a pu revenir un peu plus tôt, dès `app1` repointée ; le script
+ne le mesure qu'après les deux repointages. Un basculement volontaire inverse (les deux bases
+en marche, `bascule.ps1 -Cible bdd1`) a pris 56,7 s, repointage des applications compris.
 
 ## Limites connues
 
@@ -71,12 +87,14 @@ ordres de grandeur, pas des garanties. Mesures faites sans serveur applicatif d�
   basculement automatique.
 - **Deux primaires** : ne jamais rallumer l'ancien primaire sans le réintégrer d'abord
   (`reintegrer.ps1` remplace ses données par celles du nouveau primaire).
-- **Pas de `vagrant provision` après une bascule** sur `bdd1`/`bdd2` : les scripts de
-  provisionnement supposent `bdd1` primaire. Pour revenir à l'état initial :
+- **Pas de `vagrant provision` après une bascule** : les scripts de base supposent `bdd1`
+  primaire, et `app.sh` relit `DB_HOST` depuis `.env` ou `noeuds.yml` (donc `bdd1`). Un
+  déploiement sans coupure (`deploy-app.ps1`, extension E4) lancé après une bascule
+  repointerait les serveurs applicatifs vers l'ancien primaire. Pour revenir à l'état initial :
   `vagrant destroy -f` puis `vagrant up`.
 - **Réglages identiques** : `bdd1` et `bdd2` doivent avoir les mêmes `max_wal_senders`,
   `wal_level` et `wal_keep_size` (une réplique refuse de démarrer si une valeur est plus
   petite que celle du primaire). Les deux scripts de provisionnement les écrivent à
   l'identique.
-- Le répartiteur n'intervient pas : il ne parle qu'aux serveurs applicatifs, c'est
-  `bascule.ps1` qui repointe ces derniers.
+- Le répartiteur n'intervient pas dans la bascule : il ne parle qu'aux serveurs applicatifs,
+  c'est `bascule.ps1` qui repointe ces derniers.
