@@ -136,6 +136,10 @@ install_if_changed "$SERVICE_TMP" "$SERVICE_FILE" 0644
 UNIT_CHANGED=$LAST_INSTALL_CHANGED
 
 DB_HOST_VALUE="${DB_HOST:-$(read_project_env DB_HOST)}"
+if [ -z "$DB_HOST_VALUE" ] && [ -f "$APP_ENV" ]; then
+    # Rejeu apres une bascule (R6) : on garde la base deja configuree
+    DB_HOST_VALUE=$(sed -n 's/^DB_HOST="\{0,1\}\([^"]*\)"\{0,1\}$/\1/p' "$APP_ENV" | head -n 1)
+fi
 if [ -z "$DB_HOST_VALUE" ] && [ -f "$NODES_FILE" ]; then
     DB_HOST_VALUE=$(find_node_ip bdd1)
 fi
