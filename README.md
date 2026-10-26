@@ -1,178 +1,117 @@
-# 🎓 RESULTATS-BF
+# RÉSULTATS-BF
 
-### Consultez un résultat d'examen en une seconde, sur une infrastructure qui ne tombe jamais.
+**Plateforme de consultation de résultats d'examens : résiliente, scalable, entièrement décrite en code.**
 
-> Tapez un matricule. Obtenez un résultat. Pendant ce temps, **9 serveurs virtuels** travaillent en coulisses, se surveillent entre eux, et se remplacent automatiquement en cas de panne, le tout lancé avec **une seule commande**.
+Projet de groupe (groupe 8) du module *Virtualisation et Cloud Computing*, M1 Informatique, IBAM, Université Joseph Ki-Zerbo.
 
-![Vagrant](https://img.shields.io/badge/Vagrant-automatisé-1868F2?logo=vagrant&logoColor=white)
-![HAProxy](https://img.shields.io/badge/HAProxy-répartition%20de%20charge-0F9D58)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql&logoColor=white)
-![Flask](https://img.shields.io/badge/Flask-Gunicorn-000000?logo=flask&logoColor=white)
-![Prometheus](https://img.shields.io/badge/Prometheus-Grafana-E6522C?logo=prometheus&logoColor=white)
+Un candidat saisit son matricule et obtient son résultat. Derrière cette page se trouve une infrastructure de sept machines virtuelles au maximum, construite et configurée par une seule commande (`vagrant up`), qui survit à la panne d'un serveur applicatif, d'un répartiteur ou de la base de données, et qui s'agrandit en changeant une seule valeur.
 
----
+## Sommaire
 
-## 📑 Sommaire
-
-1. [Le projet en 30 secondes](#-le-projet-en-30-secondes)
-2. [Ce que vous allez construire](#-ce-que-vous-allez-construire)
-3. [Comprendre sans être informaticien](#-comprendre-sans-être-informaticien)
-4. [Étape 0 : Installer les prérequis](#-étape-0--installer-les-prérequis)
-5. [Étape 1 : Configurer le projet](#-étape-1--configurer-le-projet)
-6. [Étape 2 : Démarrer l'infrastructure](#-étape-2--démarrer-linfrastructure)
-7. [Étape 3 : Tester dans le navigateur](#-étape-3--tester-dans-le-navigateur)
-8. [Étape 4 : Valider avec les tests automatisés](#-étape-4--valider-avec-les-tests-automatisés)
-9. [Étape 5 : Mettre à jour sans coupure](#-étape-5--mettre-à-jour-sans-coupure)
-10. [Mettre en pause, arrêter, tout effacer](#-mettre-en-pause-arrêter-tout-effacer)
-11. [L'équipe derrière le projet](#-léquipe-derrière-le-projet)
-12. [Dépannage rapide](#-dépannage-rapide)
+1. [Présentation](#1-présentation)
+2. [Architecture](#2-architecture)
+3. [Prérequis](#3-prérequis)
+4. [Installation et démarrage](#4-installation-et-démarrage)
+5. [Utiliser et exploiter la plateforme](#5-utiliser-et-exploiter-la-plateforme)
+6. [Organisation du dépôt](#6-organisation-du-dépôt)
+7. [Exigences et extensions](#7-exigences-et-extensions)
+8. [Tests et résultats](#8-tests-et-résultats)
+9. [Dépannage](#9-dépannage)
+10. [Équipe](#10-équipe)
 
 ---
 
-## ⚡ Le projet en 30 secondes
+## 1. Présentation
 
 | | |
 |---|---|
-| **Le besoin** | Un candidat saisit son matricule (ex : `MAT000001`) et voit son résultat |
-| **Le défi** | Des milliers de candidats connectés en même temps, sans jamais de panne |
-| **La solution** | Une architecture **n-tiers haute disponibilité**, isolée et 100 % automatisée |
-| **Votre effort** | Installer 3 outils, copier un fichier, taper `vagrant up` |
-| **Durée du premier démarrage** | ⏳ 10 à 15 minutes |
+| **Besoin** | Consulter un résultat à partir d'un matricule (50 000 candidats), même au moment du pic de consultation |
+| **Exigences prioritaires** | **Résilience** : la panne d'une machine n'interrompt pas le service. **Scalabilité** : ajouter de la capacité = ajouter des machines, sans réécrire la configuration |
+| **Technologies** | Vagrant + VirtualBox, HAProxy, Keepalived (VRRP), Python (Flask + Gunicorn), PostgreSQL 16, Prometheus, Grafana |
+| **Principe directeur** | Une **source unique de vérité** : le `Vagrantfile` décrit les machines et engendre `config/noeuds.yml`, dont se servent HAProxy, Prometheus et les scripts. Aucune adresse n'est écrite en dur. |
+| **Reconstruction** | `vagrant destroy -f` puis `vagrant up` : plateforme fonctionnelle sans geste manuel (mesuré : environ 18 minutes) |
 
 ---
 
-## 🏗️ Ce que vous allez construire
-
-Une mini-infrastructure professionnelle, **entièrement sur votre ordinateur**.
-
-### 📐 Schéma d'architecture
+## 2. Architecture
 
 ```text
-                    [ Client / Navigateur Web ]
-                                 |
-                                 v
-                   http://localhost:8080 (port hôte)
-                                 |
-+-----------------------------------------------------------------+
-|                    RÉSEAU PRIVÉ VIRTUEL                         |
-|                  (sous-réseau 192.168.63.0/24)                  |
-|                                                                 |
-|  +-----------------------------------------------------------+  |
-|  |                  IP VIRTUELLE (VRRP)                      |  |
-|  |                     192.168.63.5                          |  |
-|  +-----------------------------+-----------------------------+  |
-|                                |                                |
-|            +-------------------+-------------------+            |
-|            |                                       |            |
-|            v                                       v            |
-|    +----------------+                      +----------------+   |
-|    |  lb1 (MASTER)  |                      |  lb2 (BACKUP)  |   |
-|    | 192.168.63.11  |                      | 192.168.63.12  |   |
-|    |    HAProxy     |                      |    HAProxy     |   |
-|    +-------+--------+                      +--------+-------+   |
-|            |                                        |           |
-|            +-------------------+--------------------+           |
-|                                | (Round-Robin)                  |
-|        +-----------------------+-----------------------+        |
-|        |                       |                       |        |
-|        v                       v                       v        |
-|  +------------+          +------------+          +------------+ |
-|  |    app1    |          |    app2    |          |    app3    | |
-|  | .63.21:3000|          | .63.22:3000|          | .63.23:3000| |
-|  | Flask/Guni.|          | Flask/Guni.|          | Flask/Guni.| |
-|  +-----+------+          +-----+------+          +-----+------+ |
-|        |                       |                       |        |
-|        +-----------------------+-----------------------+        |
-|                                |                                |
-|                   +------------+------------+                   |
-|                   |                         |                   |
-|                   v (lecture / écriture)    v (réplication)     |
-|          +------------------+     +------------------+          |
-|          |  bdd1 (primaire) |---->|  bdd2 (réplique) |          |
-|          |  192.168.63.31   |     |  192.168.63.32   |          |
-|          |  PostgreSQL 16   |     |  PostgreSQL 16   |          |
-|          +------------------+     +------------------+          |
-|                                                                 |
-|  +-----------------------------------------------------------+  |
-|  |                      SUPERVISION                          |  |
-|  |                      obs (.63.41)                         |  |
-|  |            Prometheus (9090) + Grafana (3000)             |  |
-|  +-----------------------------------------------------------+  |
-+-----------------------------------------------------------------+
+                    Poste hôte (navigateur, curl, ab)
+                                  |
+                       localhost:8080 -> lb1:80          (seul port exposé à l'hôte)
+                                  |
+ +--------------------- réseau privé 192.168.63.0/24 ----------------------+
+ |                                                                         |
+ |                      IP virtuelle VRRP : 192.168.63.5                   |
+ |                                   |                                     |
+ |            +----------------------+----------------------+              |
+ |            |                                             |              |
+ |     lb1 (MASTER)  .11                             lb2 (BACKUP)  .12     |
+ |     HAProxy + Keepalived                          HAProxy + Keepalived  |
+ |            |            sonde GET /sante (1 s)           |              |
+ |            +----------------------+----------------------+              |
+ |                                   | HTTP :3000 (round-robin)            |
+ |             +---------------------+---------------------+               |
+ |             |                     |                     |               |
+ |        app1 .21              app2 .22             app3 ... appN         |
+ |        Flask + Gunicorn      (sans état)          (NB_APP = N)          |
+ |             |                     |                                     |
+ |             +---------------------+                                     |
+ |                                   | SQL :5432                           |
+ |                         bdd1 (primaire) .31 ---> bdd2 (réplique) .32    |
+ |                         PostgreSQL 16    réplication en flux asynchrone |
+ |                                                                         |
+ |     obs .41 : Prometheus (:9090) + Grafana (:3000)  <-- métriques de    |
+ |     toutes les machines (node_exporter :9100) et de HAProxy (:8405)     |
+ +-------------------------------------------------------------------------+
 ```
 
-### 🌐 La carte des machines
+Le sous-réseau est `192.168.X.0/24` avec **X = 55 + GROUPE**. Pour le groupe 8, X = 63.
 
-| Machine | Adresse IP | Rôle | Détails |
-|---|---|---|---|
-| 🌍 **VIP** | `192.168.63.5` | IP virtuelle partagée | Bascule automatique via Keepalived |
-| ⚖️ **`lb1`** | `192.168.63.11` | Répartiteur principal | HAProxy + Keepalived (Master) |
-| 🛟 **`lb2`** | `192.168.63.12` | Répartiteur de secours | HAProxy + Keepalived (Backup), *Extension E1* |
-| 🧠 **`app1`** | `192.168.63.21` | Serveur applicatif 1 | Python Flask + Gunicorn (port 3000) |
-| 🧠 **`app2`** | `192.168.63.22` | Serveur applicatif 2 | Python Flask + Gunicorn (port 3000) |
-| 🧠 **`app3`** | `192.168.63.23` | Serveur applicatif 3 | Python Flask + Gunicorn (port 3000) |
-| 🗄️ **`bdd1`** | `192.168.63.31` | Base de données principale | PostgreSQL 16 (primaire) |
-| 🗄️ **`bdd2`** | `192.168.63.32` | Base de données secondaire | PostgreSQL 16 (réplique en flux) |
-| 📊 **`obs`** | `192.168.63.41` | Supervision et métriques | Prometheus + Grafana, *Extension E2* |
+### Les machines
 
-### 🔄 Le voyage d'une requête
+| Machine | Adresse | RAM | Rôle | Statut | Démarrée par `vagrant up` |
+|---|---|---|---|---|---|
+| `bdd1` | `.31` | 768 Mo | PostgreSQL primaire (lecture/écriture) | Obligatoire | oui |
+| `bdd2` | `.32` | 768 Mo | Réplique en flux, promouvable | Obligatoire | oui |
+| `app1` … `appN` | `.21` … `.2N` | 512 Mo | Serveurs applicatifs sans état (N = `NB_APP`, par défaut 2) | Obligatoire | oui |
+| `lb1` | `.11` | 512 Mo | Répartiteur actif (HAProxy + Keepalived MASTER) | Obligatoire | oui |
+| `lb2` | `.12` | 512 Mo | Répartiteur passif (Keepalived BACKUP) | Extension E1 (`E1=1`) | non, `vagrant up lb2` |
+| `obs` | `.41` | 768 Mo | Prometheus + Grafana | Extension E2 (`E2=1`) | non, `vagrant up obs` |
 
-1. **🚪 Entrée du trafic.** Le candidat ouvre `http://localhost:8080/resultat?matricule=MAT000001`. Le port `8080` de votre ordinateur redirige vers le port `80` du répartiteur `lb1`.
-2. **⚖️ Répartition.** HAProxy distribue les demandes entre `app1`, `app2` et `app3` en *Round-Robin* (chacun son tour).
-3. **🩺 Contrôle de santé.** HAProxy interroge en continu l'endpoint `/sante`. Un nœud défaillant est **retiré de la rotation instantanément**.
-4. **🗄️ Traitement.** L'application Flask (sans état) interroge `bdd1`. Si `bdd1` tombe, un script de bascule **promeut `bdd2` en nouveau primaire** et met à jour les applicatifs, sans perte de données.
+Le socle (5 machines) occupe environ **3 Go** de mémoire. Avec `lb2` et `obs` : environ 4,3 Go. Ces deux extensions ne démarrent pas avec `vagrant up` pour ménager un poste de 8 Go.
 
-> 💪 **Ce qui rend ce projet solide :** deux répartiteurs, trois serveurs applicatifs, deux bases synchronisées. Il n'existe aucun point de défaillance unique.
+### Le voyage d'une requête
 
----
+1. Le client appelle `http://localhost:8080/resultat?matricule=MAT000001` (ou l'IP virtuelle `192.168.63.5`).
+2. **Keepalived** attribue l'IP virtuelle au répartiteur en bonne santé : `lb1` en temps normal, `lb2` s'il tombe.
+3. **HAProxy** répartit en *round-robin* entre les serveurs applicatifs dont la sonde `GET /sante` répond 200. Un serveur défaillant est retiré ; une requête échouée est rejouée sur un autre serveur (`option redispatch 1`).
+4. L'application **Flask/Gunicorn** (sans état) lit la table `resultats` dans PostgreSQL et renvoie du JSON.
+5. Si `bdd1` tombe, `/sante` renvoie 503 (aucun serveur n'est plus servi) jusqu'à la **bascule** : `bdd2` est promue primaire et les serveurs applicatifs sont repointés.
 
-## 💡 Comprendre sans être informaticien
+### Choix techniques en bref
 
-Imaginez une **grande administration** installée dans votre ordinateur :
-
-| Composant | Dans la vraie vie | Son travail |
+| Domaine | Choix | Raison |
 |---|---|---|
-| ⚖️ **Répartiteurs** (`lb1`, `lb2`) | Les guichets d'accueil | Reçoivent les candidats et les orientent équitablement pour éviter les files d'attente |
-| 🧠 **Serveurs applicatifs** (`app1`, `app2`, `app3`) | Les agents administratifs | Cherchent le résultat et préparent la réponse |
-| 🗄️ **Bases de données** (`bdd1`, `bdd2`) | Le service d'archives | `bdd1` garde les **50 000 candidats** ; `bdd2` en est la copie conforme en temps réel |
-| 📊 **Observabilité** (`obs`) | La salle de contrôle | Surveille que tout fonctionne, en direct |
-
-Et la magie de **Vagrant** : toute cette administration se construit **toute seule**, sans installer chaque serveur à la main.
+| Répartition | HAProxy, `balance roundrobin`, sonde `/sante` toutes les 1 s (`fall 3`, `rise 2`) | Standard, sonde applicative réelle |
+| Haute disponibilité du répartiteur | Keepalived (VRRP), priorité 101 (lb1) / 100 (lb2), annonce toutes les 1 s | IP unique pour les clients |
+| Application | Flask + Gunicorn (2 processus × 2 threads), service systemd `app`, aucun état local | Ajout/retrait d'un serveur sans conséquence |
+| Base | PostgreSQL 16, réplication en flux asynchrone, accès limité au réseau privé (`scram-sha-256`) | Mécanisme natif, réplique lisible |
+| Supervision | node_exporter (toutes les VM) + exporter intégré de HAProxy, Prometheus, Grafana | Voir le débit monter et un serveur disparaître |
+| Reproductibilité | Scripts idempotents, boîte épinglée `bento/ubuntu-24.04` version `202508.03.0`, `.gitattributes` (fins de ligne LF) | Rejeu sans effet de bord |
 
 ---
 
-## 🛠️ Étape 0 : Installer les prérequis
+## 3. Prérequis
 
-> 🧰 Trois outils à installer, **une seule fois**. Comptez environ 15 minutes.
+| Outil | Rôle | Remarque |
+|---|---|---|
+| **VirtualBox** 7.x | Virtualisation | Les réseaux hôte-seul doivent rester dans `192.168.56.0/21` (ne pas modifier `networks.conf`) |
+| **Vagrant** 2.4 ou plus | Orchestration | Redémarrer le poste après l'installation |
+| **Git for Windows** | Fournit **Git Bash**, indispensable pour les tests | |
+| Mémoire | 8 Go sur le poste | 3 Go pour le socle |
 
-### 1️⃣ VirtualBox, le moteur de virtualisation
-
-Il fait tourner les serveurs Linux virtuels sur votre PC Windows.
-
-1. Rendez-vous sur [virtualbox.org/wiki/Downloads](https://www.virtualbox.org/wiki/Downloads) et cliquez sur **Windows hosts**.
-2. Double-cliquez sur l'installateur (`VirtualBox-7.x.x-Win.exe`).
-3. Cliquez sur **Next** à chaque écran, sans changer les options.
-4. Si Windows avertit à propos des interfaces réseau, cliquez sur **Yes**.
-5. Cliquez sur **Install**, puis **Finish**.
-
-### 2️⃣ Vagrant, le chef d'orchestre
-
-Il lit le fichier `Vagrantfile` et crée tous les serveurs à votre place.
-
-1. Allez sur [developer.hashicorp.com/vagrant/install](https://developer.hashicorp.com/vagrant/install), onglet **Windows**, version **AMD64 / 64-bit**.
-2. Double-cliquez sur le fichier `.msi`, acceptez la licence, puis **Next** jusqu'à **Finish**.
-3. ♻️ **Redémarrez votre ordinateur** quand l'installateur le demande.
-
-### 3️⃣ Git pour Windows, le terminal indispensable
-
-Il fournit **Git Bash**, nécessaire pour lancer les scripts de validation.
-
-1. Allez sur [git-scm.com/download/win](https://git-scm.com/download/win). Le téléchargement démarre tout seul.
-2. Lancez l'installateur, gardez toutes les options par défaut, puis **Install** et **Finish**.
-
-### ✅ Le moment de vérité
-
-Après redémarrage, ouvrez **Windows PowerShell** (touche Windows, tapez `PowerShell`) et lancez :
+Vérification (dans PowerShell) :
 
 ```powershell
 VBoxManage --version
@@ -180,192 +119,237 @@ vagrant --version
 git --version
 ```
 
-| Résultat | Signification |
-|---|---|
-| 🟢 Trois numéros de version (ex : `7.0.12`, `2.4.1`, `2.43.0`) | **Bravo, votre PC est prêt à 100 % !** |
-| 🔴 Texte rouge « commande non reconnue » | Redémarrez le PC pour activer les variables d'environnement |
-
 ---
 
-## 🚀 Étape 1 : Configurer le projet
+## 4. Installation et démarrage
 
-### 1.1 Ouvrir le dossier du projet
-
-Dans PowerShell, placez-vous dans le dossier :
-
-```powershell
-cd "C:\chemin\vers\votre\dossier\GOUPE8_RESULTATS-BF---Vagrant"
-```
-
-### 1.2 Créer votre fichier de secrets `.env`
-
-L'application a besoin d'un fichier de mots de passe pour protéger la base de données. Un modèle, `.env.exemple`, est déjà fourni.
-
-```powershell
-# 1. Copier le modèle
-Copy-Item .env.exemple .env
-
-# 2. Ouvrir le fichier pour vérifier ou modifier les valeurs
-notepad .env
-```
-
-| Variable | Rôle |
-|---|---|
-| `DB_HOST` | Adresse du serveur de base de données (si vide, lit `config/noeuds.yml`) |
-| `DB_PORT` | Port de communication (défaut : `5432`) |
-| `DB_USER` | Utilisateur autorisé à lire les résultats (`resultats`) |
-| `DB_PASS` | Mot de passe de la base de données |
-| `DB_NAME` | Nom de la base contenant la table `resultats` |
-| `VRRP_PASS` | Mot de passe de la haute disponibilité entre répartiteurs |
-| `GRAFANA_ADMIN_PASSWORD` | Mot de passe d'accès à Grafana |
-
-Enregistrez et fermez le Bloc-notes.
-
-> 🔒 **Bon à savoir :** le fichier `.env` reste **uniquement sur votre ordinateur**. Il n'est jamais envoyé sur Git.
-
----
-
-## ⚙️ Étape 2 : Démarrer l'infrastructure
-
-Deux commandes suffisent pour créer **9 serveurs**.
-
-**2.1 Vérifier la configuration**
-
-```powershell
-vagrant validate
-```
-
-✅ Attendu : `Vagrantfile validated successfully!`
-
-**2.2 Tout créer et démarrer**
-
-```powershell
-vagrant up
-```
-
-> ⏳ **Patience :** au premier lancement, comptez **10 à 15 minutes**. Vagrant télécharge le système d'exploitation et installe tout automatiquement. C'est le bon moment pour un café ☕.
-
----
-
-## 🔍 Étape 3 : Tester dans le navigateur
-
-Le répartiteur est accessible sur **`http://localhost:8080`**. Trois tests, trois preuves que tout fonctionne.
-
-### 🧪 Test 1 : Voir la charge se répartir
-
-Ouvrez **http://localhost:8080/info**, puis appuyez plusieurs fois sur **F5**.
-
-> 🎯 Le nom du serveur change (`app1`, `app2`...) : la charge est bien répartie.
-
-### 🩺 Test 2 : Vérifier la santé
-
-Ouvrez **http://localhost:8080/sante**
-
-> 🎯 Réponse `200 OK` avec `{"statut": "OK"}` : la base PostgreSQL répond correctement.
-
-### 🎓 Test 3 : Consulter un résultat
-
-Ouvrez **http://localhost:8080/resultat?matricule=MAT000001**
-
-> 🎯 L'application cherche `MAT000001` parmi les 50 000 candidats.
-
-### 📬 Comprendre les réponses
-
-| Code | Signification |
-|---|---|
-| ✅ **200 OK** | Matricule trouvé, résultat renvoyé en JSON |
-| ⚠️ **400 Bad Request** | Format du matricule invalide |
-| 🔎 **404 Not Found** | Matricule bien écrit, mais candidat inexistant |
-| 🚨 **503 Service Unavailable** | Panne de la base de données ou du service |
-
----
-
-## 🧪 Étape 4 : Valider avec les tests automatisés
-
-### 4.1 Tests unitaires (sans base de données réelle)
-
-```powershell
-.\.venv\Scripts\python.exe -m unittest discover -s app -p "test_*.py"
-```
-
-### 4.2 Inspecter un serveur de l'intérieur
-
-```powershell
-vagrant ssh app1
-```
-
-Puis, dans le serveur :
+### 4.1 Récupérer le dépôt
 
 ```bash
-sudo systemctl status app.service --no-pager
-curl -i http://127.0.0.1:3000/sante
-exit
+git clone https://github.com/tidiane005/GOUPE8_RESULTATS-BF---Vagrant.git
+cd GOUPE8_RESULTATS-BF---Vagrant
 ```
 
-### 4.3 La suite de tests globale
+### 4.2 Créer le fichier de configuration `.env`
 
-Depuis **Git Bash** ou **WSL**, à la racine du projet :
+Les mots de passe ne sont **jamais** dans le dépôt. Un modèle est fourni :
 
 ```bash
-./tests/run_all.sh
+cp .env.exemple .env      # PowerShell : Copy-Item .env.exemple .env
 ```
 
-Elle valide l'ensemble du système, du `tests/v1_repartition.sh` au `tests/v6_panne_repartiteur.sh`.
+Ouvrir `.env` et renseigner les variables :
+
+| Variable | Rôle | Valeur d'exemple |
+|---|---|---|
+| `GROUPE` | Numéro de groupe (1 à 8) : détermine le réseau `192.168.(55+GROUPE).0/24` | `8` |
+| `NB_APP` | Nombre de serveurs applicatifs (≥ 2) | `2` |
+| `DB_USER` | Utilisateur PostgreSQL (application et réplication) | `resultats` |
+| `DB_NAME` | Nom de la base | `resultats_bf` |
+| `DB_PASS` | Mot de passe PostgreSQL | **à choisir** |
+| `VRRP_PASS` | Mot de passe VRRP entre répartiteurs (8 premiers caractères utilisés) | **à choisir** |
+| `GRAFANA_ADMIN_PASSWORD` | Mot de passe du compte `admin` de Grafana | **à choisir** |
+| `E1` | `1` = déclare `lb2` (répartiteur redondant) | `1` |
+| `E2` | `1` = déclare `obs` (supervision) | `1` |
+
+> Les valeurs de `.env.exemple` sont de simples exemples de laboratoire. `.env` est ignoré par Git : ne jamais le commiter.
+> Priorité des valeurs : variable d'environnement du terminal > `.env` > valeur par défaut. Un `export NB_APP=4` temporaire remplace donc le `.env`.
+
+### 4.3 Démarrer
+
+```bash
+vagrant validate        # attendu : Vagrantfile validated successfully
+vagrant up              # bdd1, bdd2, app1, app2, lb1 (premier lancement : 15 à 20 minutes)
+vagrant up obs lb2      # extensions (nécessitent E2=1 et E1=1 dans .env)
+vagrant status
+```
+
+Le premier démarrage télécharge la boîte Ubuntu et installe les paquets : prévoir une bonne connexion et de la patience. Aucun geste manuel n'est requis ensuite.
+
+### 4.4 Vérifier que tout fonctionne
+
+```bash
+curl http://localhost:8080/info                              # {"serveur":"app1"} puis app2...
+curl http://localhost:8080/sante                             # {"statut":"OK"}
+curl "http://localhost:8080/resultat?matricule=MAT000001"    # résultat du candidat
+```
+
+| Interface | Adresse | Accès |
+|---|---|---|
+| Application (via l'hôte) | `http://localhost:8080` | public |
+| Application (IP virtuelle) | `http://192.168.63.5` | réseau privé |
+| Grafana | `http://192.168.63.41:3000` | `admin` + `GRAFANA_ADMIN_PASSWORD` |
+| Prometheus | `http://192.168.63.41:9090/targets` | toutes les cibles doivent être **UP** |
+| Statistiques HAProxy | `http://192.168.63.11:8404/stats` | état des serveurs |
 
 ---
 
-## 🔄 Étape 5 : Mettre à jour sans coupure
+## 5. Utiliser et exploiter la plateforme
 
-Le **déploiement sans interruption** (*Zero Downtime Deployment*) met à jour le code **serveur par serveur**, pendant que les utilisateurs continuent à consulter leurs résultats sans rien remarquer.
+### 5.1 L'application
 
-1. Vérifiez que l'application et la base fonctionnent parfaitement.
-2. Lancez le script :
+| Point d'entrée | Réponse |
+|---|---|
+| `GET /resultat?matricule=…` | `200` JSON `{matricule, nom, serie, moyenne, admis}` · `400` matricule absent · `404` matricule inconnu · `503` base indisponible |
+| `GET /sante` | `200 {"statut":"OK"}` si la base répond, `503 {"statut":"INDISPONIBLE"}` sinon (sonde de HAProxy) |
+| `GET /info` | `200 {"serveur":"<nom d'hôte>"}` : sert à observer la répartition |
+
+Les matricules vont de `MAT000001` à `MAT050000`.
+
+### 5.2 Ajouter ou retirer un serveur applicatif (R3)
+
+**Passer à 4 serveurs** : une seule valeur à changer. Dans Git Bash :
+
+```bash
+export NB_APP=4
+vagrant up                      # crée app3 et app4
+vagrant provision lb1           # HAProxy relit config/noeuds.yml (et lb2 s'il tourne)
+vagrant provision obs           # Prometheus relit config/noeuds.yml
+```
+
+La configuration de HAProxy et de Prometheus est **engendrée** depuis `config/noeuds.yml` : elle suit toute seule.
+
+**Revenir à 2 serveurs** (Vagrant ne connaît `app3` et `app4` que si `NB_APP=4`) :
+
+```bash
+export NB_APP=4
+vagrant destroy -f app3 app4
+export NB_APP=2
+vagrant provision lb1           # puis lb2 et obs s'ils tournent
+vagrant provision obs
+```
+
+### 5.3 Déployer une nouvelle version sans coupure (E4)
+
+Après avoir modifié `app/main.py`, depuis PowerShell :
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\deploy-app.ps1
 ```
 
-> 🛡️ Le script met à jour chaque serveur applicatif l'un après l'autre et **attend que `/sante` réponde positivement** avant de passer au suivant.
+Le script vérifie que tous les serveurs sont sains, puis met à jour **un serveur à la fois** (`vagrant provision appN`) et attend que `/sante` réponde 200 avant de passer au suivant : il en reste toujours au moins un en service.
 
----
+### 5.4 Basculer la base sur la réplique (R6)
 
-## 🛑 Mettre en pause, arrêter, tout effacer
+Quand `bdd1` est tombée, depuis la racine du dépôt :
 
-| Je veux... | Commande |
+```bash
+bash scripts/bascule.sh            # Git Bash, sur l'hôte
+```
+
+Le script (1) promeut `bdd2` en primaire (`pg_promote`), (2) repointe `DB_HOST` vers `bdd2` sur chaque serveur applicatif démarré (`/etc/resultats-bf/app.env`) et redémarre le service. Il est rejouable sans effet de bord et se chronomètre lui-même (environ 45 s sur le poste de développement, presque tout en appels `vagrant ssh`).
+
+Remettre l'ancien primaire en réplique (ses données sont **remplacées** par celles du nouveau primaire) :
+
+```powershell
+.\reintegrer.ps1                   # bdd1 redevient réplique de bdd2
+```
+
+Détails, version PowerShell (`bascule.ps1 -Panne bdd1`) et limites : [`docs/bascule.md`](docs/bascule.md).
+
+> Ne pas rejouer `vagrant provision` sur `bdd1`/`bdd2` après une bascule : les scripts supposent `bdd1` primaire. Pour revenir à l'état initial : `vagrant destroy -f` puis `vagrant up`.
+
+### 5.5 Superviser
+
+Grafana, tableau **RESULTATS-BF - Infrastructure** (chargé automatiquement) : état UP/DOWN des machines, serveurs applicatifs vus par HAProxy, débit en requêtes/s, réponses par code HTTP, sessions en cours, temps de réponse moyen, serveurs actifs par backend, CPU, mémoire et réseau par machine. Pendant une panne, le serveur arrêté disparaît du panneau « Serveurs applicatifs vus par HAProxy ».
+
+### 5.6 Arrêter, reprendre, tout effacer
+
+| Je veux… | Commande |
 |---|---|
-| ⏸️ Mettre en pause (état conservé, aucun processeur utilisé) | `vagrant suspend` |
-| 🔌 Arrêter proprement | `vagrant halt` |
-| ▶️ Redémarrer | `vagrant reload` |
-| 💣 Tout supprimer et repartir de zéro | `vagrant destroy -f` |
+| Éteindre sans rien perdre | `vagrant halt` |
+| Redémarrer | `vagrant up` |
+| Mettre en pause | `vagrant suspend` / `vagrant resume` |
+| Tout supprimer et repartir de zéro | `vagrant destroy -f` puis `vagrant up` |
 
 ---
 
-## 🤝 L'équipe derrière le projet
+## 6. Organisation du dépôt
 
-RESULTATS-BF repose sur **4 rôles complémentaires** :
+```text
+Vagrantfile                 source de vérité : machines, réseau, secrets via .env
+.env.exemple                modèle de configuration (versionné) ; .env n'est jamais versionné
+config/
+  noeuds.yml                ENGENDRÉ par le Vagrantfile (non versionné)
+  grafana/                  source de données et tableau de bord provisionnés
+app/                        service Flask (main.py), dépendances, tests unitaires
+scripts/                    provisionnement : bdd.sh, replique.sh, app.sh, lb.sh, obs.sh,
+                            node_exporter.sh, lb-metrics.sh, gen_prometheus_config.py ;
+                            exploitation : bascule.sh, promouvoir.sh, rejoindre.sh,
+                            deploy-app.ps1
+tests/                      scénarios V1 à V6 et utilitaires  ->  tests/README.md
+resultats/                  rapports horodatés des scénarios
+docs/                       procédure de bascule (bascule.md)
+bascule.ps1, reintegrer.ps1, r2.ps1, r5.ps1   outils PowerShell de l'ingénieur données
+README-OBSERVABILITE.md     détails de la supervision
+```
 
-| Rôle | Mission |
+---
+
+## 7. Exigences et extensions
+
+| Réf. | Exigence | Où / comment |
+|---|---|---|
+| R1 | Reconstruction intégrale | `vagrant destroy -f && vagrant up` ; mesuré par V5 |
+| R2 | Idempotence | scripts rejouables ; vérifiée par `tests/r2_idempotence.sh` et `r2.ps1` |
+| R3 | Nombre de serveurs paramétrable | `NB_APP` ; HAProxy et Prometheus engendrés depuis `config/noeuds.yml` |
+| R4 | Sonde de santé | HAProxy interroge `/sante` ; scénario V2 |
+| R5 | Réplication en flux | `bdd2` réplique de `bdd1` ; `r5.ps1`, V4, V5 |
+| R6 | Procédure de bascule | `scripts/bascule.sh`, `docs/bascule.md` ; scénario V4 |
+| R7 | Aucun secret dans le dépôt | `.env` ignoré, `.env.exemple` versionné |
+| R8 | Cloisonnement réseau | seul `lb` redirige un port (80 → 8080 / 8081) |
+| E1 | Répartiteur redondant | `lb2` + Keepalived ; scénario V6 |
+| E2 | Observabilité | `obs` : Prometheus + Grafana |
+| E4 | Déploiement sans coupure | `scripts/deploy-app.ps1` |
+
+---
+
+## 8. Tests et résultats
+
+Les six scénarios de validation (V1 à V6) sont des scripts bash dans [`tests/`](tests/README.md), à lancer dans **Git Bash** :
+
+```bash
+./tests/v1_repartition.sh
+./tests/v2_panne_app.sh
+SKIP_SCALE=1 ./tests/v3_montee_en_charge.sh
+./tests/v6_panne_repartiteur.sh
+./tests/v4_panne_base.sh        # laisse bdd1 arrêtée
+./tests/v5_reconstruction.sh    # détruit et reconstruit tout : en dernier
+```
+
+Chaque script affiche des contrôles `[ OK ]` / `[ECHEC]`, un `RÉSULTAT GLOBAL`, et écrit un rapport dans `resultats/`. Guide complet, description de chaque script et résultats de référence : [`tests/README.md`](tests/README.md).
+
+Tests unitaires de l'application (7 tests, base de données simulée), depuis la racine du dépôt, dans un environnement Python où `pip install -r app/requirements.txt` a été exécuté :
+
+```bash
+python -m unittest app.test_main
+```
+
+---
+
+## 9. Dépannage
+
+| Symptôme | Cause probable et solution |
 |---|---|
-| 🌐 **Architecte Réseau & HA** | Fournit HAProxy, l'IP virtuelle Keepalived et la sonde de santé `/sante` |
-| 💻 **Ingénieur Applicatif** | Développe le microservice Flask/Gunicorn *stateless* : un serveur peut entrer ou sortir de la rotation à tout moment |
-| 🗄️ **Ingénieur Données** | Déploie PostgreSQL 16, génère les 50 000 candidats, assure la réplication `bdd1` → `bdd2` et la bascule automatique |
-| 📊 **Ingénieur Essais & Observabilité** | Configure Prometheus/Grafana et écrit les scripts de validation (`v1` à `v6`) |
+| `variables manquantes dans .env` | Compléter `DB_USER`, `DB_NAME`, `DB_PASS` |
+| `machine not found` | `GROUPE` / `NB_APP` d'un terminal ne correspondent pas à ceux du `vagrant up` ; refaire les `export` |
+| `obs` ou `lb2` inconnue de `vagrant status` | `E2=1` / `E1=1` absent du `.env` |
+| `GRAFANA_ADMIN_PASSWORD manquant` | Renseigner le mot de passe puis `vagrant provision obs` |
+| `/sante` renvoie 503 | Base arrêtée ou `.env` incorrect : `vagrant status`, puis `vagrant ssh bdd1 -c "sudo systemctl status postgresql"` |
+| `bash\r: No such file or directory` | Fins de ligne CRLF : `sed -i 's/\r$//' scripts/*.sh tests/*.sh` |
+| Avertissement « guest additions » | Sans gravité |
+| Premier `vagrant up` très long | Normal (téléchargements) ; ne pas interrompre |
+| Tout est cassé | `vagrant destroy -f` puis `vagrant up` |
 
 ---
 
-## 🩹 Dépannage rapide
+## 10. Équipe
 
-| Symptôme | Solution |
-|---|---|
-| `commande non reconnue` dans PowerShell | Redémarrez le PC, puis relancez les vérifications de version |
-| `vagrant validate` échoue | Vérifiez que vous êtes bien dans le dossier du projet (`cd ...`) |
-| Le premier `vagrant up` semble bloqué | Normal : attendez 10 à 15 minutes (téléchargements) |
-| `/sante` renvoie `503` | Vérifiez le fichier `.env` et l'état de `bdd1` (`vagrant status`) |
-| Tout est cassé | `vagrant destroy -f` puis `vagrant up` : retour à zéro propre |
+| Rôle | Membre (identifiant Git) | Périmètre |
+|---|---|---|
+| Architecte réseau et répartition | KABORE Olivier Wendpanga | Plan d'adressage, Vagrantfile, HAProxy, Keepalived, extension E1 |
+| Ingénieur applicatif | SANON Cheick Hadou | Service HTTP sans état, gestion des erreurs, déploiement sans coupure (E4) |
+| Ingénieur données | BADINI Cheick Ahmed Tidiane | PostgreSQL, jeu de données, réplication, procédure de bascule |
+| Ingénieur essais et observabilité | ROUAMBA Wendpagnagdé Franck Idsene | Scénarios V1 à V6, campagne de mesures, supervision (E2) |
 
----
-
-<p align="center">
-  <b>🎓 RESULTATS-BF</b> · Projet de groupe · M1 Informatique, IBAM · Université Joseph Ki-Zerbo<br>
-  <i>Une infrastructure qui ne dort jamais, pour que chaque candidat trouve son résultat.</i>
-</p>
+*M1 Informatique · IBAM · Université Joseph Ki-Zerbo · année 2025-2026.*
