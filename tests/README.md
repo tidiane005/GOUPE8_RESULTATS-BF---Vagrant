@@ -64,7 +64,7 @@ curl "http://192.168.63.5/resultat?matricule=MAT000001"
 ```bash
 ./tests/v1_repartition.sh
 ./tests/v2_panne_app.sh
-SKIP_SCALE=1 ./tests/v3_montee_en_charge.sh      # N courant, sans toucher aux machines
+./tests/v3_montee_en_charge.sh      # pour confirmer la création des nouvelles apps à travers "vagrant status", il faut d'abord faire "export NB_APP=n"( remplacer "n" par le nombre total de app)
 ./tests/v6_panne_repartiteur.sh
 ./tests/v4_panne_base.sh                         # répondre o à la confirmation
 ./tests/v5_reconstruction.sh                     # répondre o : DÉTRUIT tout, ~20 à 35 min
