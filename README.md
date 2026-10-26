@@ -311,7 +311,7 @@ Les six scénarios de validation (V1 à V6) sont des scripts bash dans [`tests/`
 ```bash
 ./tests/v1_repartition.sh
 ./tests/v2_panne_app.sh
-SKIP_SCALE=1 ./tests/v3_montee_en_charge.sh
+./tests/v3_montee_en_charge.sh
 ./tests/v6_panne_repartiteur.sh
 ./tests/v4_panne_base.sh        # laisse bdd1 arrêtée
 ./tests/v5_reconstruction.sh    # détruit et reconstruit tout : en dernier
